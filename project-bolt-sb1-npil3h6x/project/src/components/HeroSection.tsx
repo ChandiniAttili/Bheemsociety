@@ -16,8 +16,8 @@ export default function HeroSection() {
               </p>
 
               {/* Apply Now and View Jobs Buttons */}
-              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                <div className="rounded-md shadow">
+              <div className="mt-5 sm:mt-8 sm:flex sm:flex-col sm:items-center lg:items-start lg:flex-row lg:justify-start">
+                <div className="rounded-md shadow mb-4 lg:mb-0">
                   <a
                     href="#apply"
                     className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
@@ -25,7 +25,7 @@ export default function HeroSection() {
                     Apply Now
                   </a>
                 </div>
-                <div className="ml-4 rounded-md shadow">
+                <div className="rounded-md shadow lg:ml-4">
                   <a
                     href="#jobs"
                     className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-700 hover:bg-blue-800 md:py-4 md:text-lg md:px-10"
@@ -48,11 +48,11 @@ export default function HeroSection() {
 
       {/* Image Section */}
       <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 flex justify-end items-center">
-      <img
-  className="h-[400px] w-[500px] object-contain border-4 border-orange-500"
-  src="/img1.png"  // Correct path to image in the public folder
-  alt="Professional facility management"
-/>
+        <img
+          className="h-[400px] w-[500px] object-contain border-4 border-orange-500"
+          src="/img1.png"  // Using the image from the public folder
+          alt="Professional facility management"
+        />
       </div>
     </div>
   );
