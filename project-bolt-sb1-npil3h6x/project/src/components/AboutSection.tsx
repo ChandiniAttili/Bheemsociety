@@ -5,13 +5,35 @@ export default function AboutSection() {
   return (
     <section id="about" className="pt-24 pb-20 bg-white">
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center mb-12">
-          <h2 className="text-3xl font-bold mb-6">About Bheem Society</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Established in 2024, Bheem Society has been a leading provider of facility management and security services in Hyderabad. We take pride in delivering professional services while creating employment opportunities for our community.
-          </p>
+        {/* Company Overview */}
+        <div className="flex flex-col md:flex-row items-center gap-12 mb-16">
+          <div className="md:w-1/2">
+            <h2 className="text-3xl font-bold mb-6">About Bheem Society</h2>
+            <p className="text-lg text-gray-600 mb-6">
+              Established in 2024, Bheem Society has been a leading provider of facility management and security services in Hyderabad. We take pride in delivering professional services while creating employment opportunities for our community.
+            </p>
+            <p className="text-lg text-gray-600">
+              Our commitment to excellence and customer satisfaction has made us one of the most trusted names in the facility management industry. We combine expertise with innovation to deliver outstanding service quality.
+            </p>
+          </div>
+          <div className="md:w-1/2">
+            {/* Chairman Profile */}
+            <div className="text-center">
+              <div className="mb-6">
+                <img 
+                  src="/img3.jpeg"
+                  alt="Srikanth Rathnam"
+                  className="w-48 h-48 rounded-full mx-auto object-cover shadow-lg"
+                />
+              </div>
+              <h3 className="text-2xl font-bold mb-2 text-blue-600">Srikanth Rathnam, B.Sc</h3>
+<p className="text-xl font-bold text-green-600 mb-4">Chairman</p>
+              <p className="text-gray-600">Avanthi Facility Management Services Pvt.Ltd</p>
+            </div>
+          </div>
         </div>
 
+        {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="text-center p-6">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">

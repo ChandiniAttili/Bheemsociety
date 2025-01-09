@@ -11,7 +11,7 @@ export default function ApplicationForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    window.location.href = `attilichandini302@gmail.com?subject=New Job Application&body=Name: ${formData.name}%0D%0APhone: ${formData.phone}%0D%0AService: ${formData.service}%0D%0AAddress: ${formData.address}`;
+    window.location.href = `mailto:bheemsociety@gmail.com?subject=New Job Application&body=Name: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0APhone: ${formData.phone}%0D%0AService: ${formData.service}%0D%0AAddress: ${formData.address}`;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
