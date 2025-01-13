@@ -1,4 +1,21 @@
 User-agent: *
 Allow: /
 
+# Sitemaps
 Sitemap: https://bheemsociety.org/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 10
+
+# Additional rules
+Allow: /*.js
+Allow: /*.css
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.ico
+
+# Prevent crawling of error pages
+Disallow: /404
+Disallow: /error
