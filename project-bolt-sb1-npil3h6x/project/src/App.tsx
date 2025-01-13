@@ -11,7 +11,9 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main>
-        <h1 className="sr-only">Bheem Society - Leading Security Services & Facility Management in Hyderabad</h1>
+        <h1 className="text-4xl md:text-5xl font-black text-blue-600 text-center pt-24 pb-8">
+          Bheem Society - Leading Security Services & Facility Management in Hyderabad
+        </h1>
         <HeroSection />
         <AboutSection />
         <ServicesSection />
@@ -35,10 +37,10 @@ function App() {
                   <strong>Address:</strong> Plot No:204, 3rd floor, City Home Apartment, Himayatnagar-500029
                 </p>
                 <p className="mb-4">
-                  <strong>Phone:</strong> <a href="tel:+919441666624" className="text-blue-600 hover:underline">+91 94416 66624</a>
+                  <strong>Phone:</strong> <a href="tel:+919441666624" className="text-blue-600 hover:underline">+91 9392462636</a>
                 </p>
                 <p className="mb-4">
-                  <strong>Email:</strong> <a href="mailto:bheemsociety1@gmail.com" className="text-blue-600 hover:underline">bheemsociety1@gmail.com</a>
+                  <strong>Email:</strong> <a href="mailto:bheemsociety1@gmail.com" className="text-blue-600 hover:underline">bhemsociety@gmail.com</a>
                 </p>
               </address>
             </div>
@@ -48,16 +50,20 @@ function App() {
 
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <nav aria-label="Footer Navigation">
-            <ul className="flex justify-center space-x-6 mb-4">
-              <li><a href="#about" className="hover:text-blue-300">About</a></li>
-              <li><a href="#services" className="hover:text-blue-300">Services</a></li>
-              <li><a href="#jobs" className="hover:text-blue-300">Jobs</a></li>
-              <li><a href="#contact" className="hover:text-blue-300">Contact</a></li>
+        <div className="container mx-auto px-4">
+          <nav aria-label="Footer Navigation" className="mb-8">
+            <ul className="flex flex-wrap justify-center gap-6">
+              <li><a href="#about" className="hover:text-blue-300 transition-colors">About Us</a></li>
+              <li><a href="#services" className="hover:text-blue-300 transition-colors">Our Services</a></li>
+              <li><a href="#jobs" className="hover:text-blue-300 transition-colors">Career Opportunities</a></li>
+              <li><a href="#contact" className="hover:text-blue-300 transition-colors">Contact Us</a></li>
+              <li><a href="tel:+919441666624" className="hover:text-blue-300 transition-colors">Call Now: +91 94416 66624</a></li>
             </ul>
           </nav>
-          <p>&copy; {new Date().getFullYear()} Bheem Society. All rights reserved.</p>
+          <div className="text-center">
+            <p className="mb-2">&copy; {new Date().getFullYear()} Bheem Society. All rights reserved.</p>
+            <p className="text-sm text-gray-400">Professional Security Services & Facility Management in Hyderabad</p>
+          </div>
         </div>
       </footer>
     </div>
