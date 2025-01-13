@@ -11,11 +11,8 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main>
-        <h1 className="text-4xl md:text-5xl font-black text-blue-600 text-center pt-24 pb-8">
-          Bheem Society - Leading Security Services & Facility Management in Hyderabad
-        </h1>
-        <HeroSection />
         <AboutSection />
+        <HeroSection />
         <ServicesSection />
         <JobNotifications />
 
