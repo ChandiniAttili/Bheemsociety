@@ -6,13 +6,16 @@ import ServicesSection from './components/ServicesSection';
 import JobNotifications from './components/JobNotifications';
 import ApplicationForm from './components/BookingForm';
 
-function App() {
+export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main>
-        <AboutSection />
+        <h1 className="text-4xl md:text-5xl font-black text-blue-600 text-center pt-24 pb-8">
+          Bheem Society - Leading Security Services & Facility Management in Hyderabad
+        </h1>
         <HeroSection />
+        <AboutSection />
         <ServicesSection />
         <JobNotifications />
 
@@ -34,10 +37,10 @@ function App() {
                   <strong>Address:</strong> Plot No:204, 3rd floor, City Home Apartment, Himayatnagar-500029
                 </p>
                 <p className="mb-4">
-                  <strong>Phone:</strong> <a href="tel:+919441666624" className="text-blue-600 hover:underline">+91 9392462636</a>
+                  <strong>Phone:</strong> <a href="tel:+919441666624" className="text-blue-600 hover:underline">+91 93924 62636</a>
                 </p>
                 <p className="mb-4">
-                  <strong>Email:</strong> <a href="mailto:bheemsociety1@gmail.com" className="text-blue-600 hover:underline">bhemsociety@gmail.com</a>
+                  <strong>Email:</strong> <a href="mailto:bhemsociety1@gmail.com" className="text-blue-600 hover:underline">bhemsociety1@gmail.com</a>
                 </p>
               </address>
             </div>
@@ -66,5 +69,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
