@@ -57,7 +57,7 @@ export default function App() {
               <li><a href="#services" className="hover:text-blue-300 transition-colors">Our Services</a></li>
               <li><a href="#jobs" className="hover:text-blue-300 transition-colors">Career Opportunities</a></li>
               <li><a href="#contact" className="hover:text-blue-300 transition-colors">Contact Us</a></li>
-              <li><a href="tel:+919441666624" className="hover:text-blue-300 transition-colors">Call Now: +91 94416 66624</a></li>
+              <li><a href="tel:+919441666624" className="hover:text-blue-300 transition-colors">Call Now: +91 9392462636</a></li>
             </ul>
           </nav>
           <div className="text-center">
