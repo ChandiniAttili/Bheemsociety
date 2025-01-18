@@ -37,7 +37,7 @@ export default function App() {
                   <strong>Address:</strong> Plot No:204, 3rd floor, City Home Apartment, Himayatnagar-500029
                 </p>
                 <p className="mb-4">
-                  <strong>Phone:</strong> <a href="tel:+919441666624" className="text-blue-600 hover:underline">+91 93924 62636</a>
+                  <strong>Phone:</strong> <a href="tel:+9193924 62636" className="text-blue-600 hover:underline">+91 93924 62636</a>
                 </p>
                 <p className="mb-4">
                   <strong>Email:</strong> <a href="mailto:bhemsociety1@gmail.com" className="text-blue-600 hover:underline">bhemsociety1@gmail.com</a>
