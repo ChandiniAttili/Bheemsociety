@@ -40,7 +40,7 @@ export default function App() {
                   <strong>Phone:</strong> <a href="tel:+9193924 62636" className="text-blue-600 hover:underline">+91 93924 62636</a>
                 </p>
                 <p className="mb-4">
-                  <strong>Email:</strong> <a href="mailto:bhemsociety1@gmail.com" className="text-blue-600 hover:underline">bhemsociety1@gmail.com</a>
+                  <strong>Email:</strong> <a href="mailto:bhemsociety@gmail.com" className="text-blue-600 hover:underline">bhemsociety@gmail.com</a>
                 </p>
               </address>
             </div>
