@@ -10,10 +10,10 @@ export default function AboutSection() {
           <div className="md:w-1/2">
             <h2 className="text-3xl font-bold mb-6">About Bheem Society</h2>
             <p className="text-lg text-gray-600 mb-6">
-              Established in 2024, Bheem Society has been a leading provider of facility management and security services in Hyderabad. We take pride in delivering professional services while creating employment opportunities for our community.
+              Established in 2018, Bheem Society has been a leading provider of facility management and security services in Telangana. We take pride in delivering professional services while creating employment opportunities for our community.
             </p>
             <p className="text-lg text-gray-600">
-              Our commitment to excellence and customer satisfaction has made us one of the most trusted names in the facility management industry. We combine expertise with innovation to deliver outstanding service quality.
+            Our commitment to excellence and customer satisfaction has established us as a trusted name in the facility management industry. We offer a diverse range of services, including housekeeping, security guard services, cashier and sales personnel support, and government-attached projects. Combining expertise with innovation, we ensure top-quality service tailored to meet our clients' unique needs. Our highly trained professionals bring reliability and efficiency to every task, whether it's maintaining a clean and organized environment, ensuring safety and security, or providing skilled manpower for business operations. Partner with us to experience unmatched service quality that drives success and exceeds expectations.
             </p>
           </div>
           <div className="md:w-1/2">
@@ -28,7 +28,7 @@ export default function AboutSection() {
               </div>
               <h3 className="text-2xl font-bold mb-2 text-blue-600">Srikanth Rathnam, B.Sc</h3>
 <p className="text-xl font-bold text-green-600 mb-4">Chairman</p>
-              <p className="text-gray-600">Avanthi Facility Management Services Pvt.Ltd</p>
+              <p className="text-gray-600">Bheem Society Pvt.Ltd</p>
             </div>
           </div>
         </div>

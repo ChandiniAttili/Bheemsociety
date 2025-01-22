@@ -11,9 +11,23 @@ export default function App() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main>
-        <h1 className="text-4xl md:text-5xl font-black text-blue-600 text-center pt-24 pb-8">
-          Bheem Society - Leading Security Services & Facility Management in Hyderabad
-        </h1>
+      <h1
+  className="text-4xl md:text-5xl font-black text-blue-600 text-center pt-24 pb-0 mb-0"
+>
+  <center>Bheem Society</center>
+</h1>
+<h4
+  className="text-3xl md:text-4xl font-black text-green-600 text-center pt-0 mt-0"
+>
+  <center>Registered Government of Telangana</center>
+</h4>
+<h6
+  className="text-2xl md:text-2xl font-black text-red-400 text-center pt-0 mt-0"
+>
+  <center>Govt.Out Sourcing Jobs</center>
+</h6>
+
+
         <AboutSection />
         <HeroSection />
         <ServicesSection />
