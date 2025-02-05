@@ -34,6 +34,18 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
     resume: '',
     idProof: '',
     photo: '',
+    tenthBoard:'',
+    tenthYear:'',
+    tenthPercentage:'',
+    interPercentage:'',
+    interYear:'',
+    interBoard:'',
+    graduationBoard:'',
+    graduationYear:'',
+    graduationPercentage:'',
+    diplomaBoard:'',
+    diplomaPercentage:'',
+    diplomaYear:'',
     languages: '',
     references: '',
     declaration: false,
@@ -74,9 +86,62 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Convert all files to base64
+    const fileAttachments = [];
+    
+    if (formData.passportPhoto) {
+      const photoBase64 = await convertFileToBase64(formData.passportPhoto);
+      fileAttachments.push({
+        name: 'Passport Photo',
+        data: photoBase64
+      });
+    }
+
+    if (formData.tenthMemo) {
+      const tenthMemoBase64 = await convertFileToBase64(formData.tenthMemo);
+      fileAttachments.push({
+        name: '10th Memo',
+        data: tenthMemoBase64
+      });
+    }
+
+    if (formData.interMemo) {
+      const interMemoBase64 = await convertFileToBase64(formData.interMemo);
+      fileAttachments.push({
+        name: 'Intermediate Memo',
+        data: interMemoBase64
+      });
+    }
+
+    if (formData.diplomaMemo) {
+      const diplomaMemoBase64 = await convertFileToBase64(formData.diplomaMemo);
+      fileAttachments.push({
+        name: 'Diploma Memo',
+        data: diplomaMemoBase64
+      });
+    }
+
+    if (formData.graduationMemo) {
+      const graduationMemoBase64 = await convertFileToBase64(formData.graduationMemo);
+      fileAttachments.push({
+        name: 'Graduation Memo',
+        data: graduationMemoBase64
+      });
+    }
+
+    // Create email body with form data and attachments
     const emailBody = `
 New Job Application
 
@@ -87,7 +152,7 @@ Personal Information:
 - Gender: ${formData.gender}
 - Category: ${formData.category}
 - Handicapped: ${formData.handicapped}
-- Andharnumber: ${formData.adharnumber}
+- Aadhar Number: ${formData.adharnumber}
 
 Contact Information:
 - Email: ${formData.email}
@@ -97,22 +162,51 @@ Contact Information:
 - Pincode: ${formData.pincode}
 
 Educational Information:
-- Highest Qualification: ${formData.education}
-- University/Board: ${formData.university}
-- Year of Passing: ${formData.yearOfPassing}
-- Percentage/CGPA: ${formData.percentage}
+10th Details:
+- School: ${formData.tenthBoard}
+- Year of Passing: ${formData.tenthYear}
+- Percentage/CGPA: ${formData.tenthPercentage}
+
+Intermediate Details:
+- College: ${formData.interBoard}
+- Year of Passing: ${formData.interYear}
+- Percentage/CGPA: ${formData.interPercentage}
+
+Diploma Details:
+- Institution: ${formData.diplomaBoard}
+- Year of Passing: ${formData.diplomaYear}
+- Percentage/CGPA: ${formData.diplomaPercentage}
+
+Graduation Details:
+- University: ${formData.graduationBoard}
+- Year of Passing: ${formData.graduationYear}
+- Percentage/CGPA: ${formData.graduationPercentage}
 
 Professional Information:
 - Position Applied For: ${formData.position}
 - Total Experience: ${formData.experience} years
+
+Attachments:
+${fileAttachments.map(file => `- ${file.name}`).join('\n')}
+
+Note: All required documents are attached below as base64 encoded files.
+
+--- Attachments ---
+${fileAttachments.map(file => `
+${file.name}:
+${file.data}
+`).join('\n')}
     `.trim();
 
+    // Encode the email body for the mailto link
     const encodedBody = encodeURIComponent(emailBody);
     const mailtoLink = `mailto:bhemsociety@gmail.com?subject=New Job Application - ${formData.firstName} ${formData.lastName}&body=${encodedBody}`;
 
+    // Open the email client
     window.location.href = mailtoLink;
 
-    alert('Application submitted successfully! Your email client will open to send the application.');
+    // Show success message and close form
+    alert('Application submitted successfully! Your email client will open to send the application with all attachments.');
     onSubmitSuccess?.();
   };
 
