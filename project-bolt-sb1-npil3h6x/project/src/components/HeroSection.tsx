@@ -132,12 +132,6 @@ const HeroSection: React.FC<JobsSectionProps> = ({ onApplyClick }) => {
         </div>
        
         <div className="overflow-hidden h-10 relative">
-  <div className="absolute animate-scroll">
-    <p className="text-lg font-semibold text-orange-900">
-      1878 Jobs Available under the administrative control of Engineer in Chief (Admn) 
-      <span className="text-blue-500 font-bold animate-pulse">[new]</span>
-    </p>
-  </div>
 </div>
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-green-100 px-4 py-2 rounded-full">

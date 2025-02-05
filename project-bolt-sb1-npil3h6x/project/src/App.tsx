@@ -28,6 +28,12 @@ export default function App() {
         <h6 className="text-2xl md:text-2xl font-black text-red-400 text-center pt-0 mt-0">
           <center>Govt.Out Sourcing Jobs</center>
         </h6>
+        <div className="absolute animate-scroll">
+          <p className="text-lg font-semibold text-orange-900">
+          <span className="text-blue-500 font-bold animate-pulse">[new]</span>
+            ***1878 out sourcing jobs available under the irrigation administrative control of Engineer in Chief (Admn)***
+          </p>
+        </div>
       <AboutSection />
       <main className="pt-16">
         {/* Hero Section */}
