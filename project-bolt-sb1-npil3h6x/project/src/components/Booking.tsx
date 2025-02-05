@@ -424,7 +424,7 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">Board/University</label>
+                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">School Name</label>
                 <input
                   type="text"
                   id="tenthBoard"
@@ -466,7 +466,7 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
 
           <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h4 className="text-lg font-medium text-gray-700">10th Details</h4>
+        <h4 className="text-lg font-medium text-gray-700">Intermediate Details</h4>
         <div className="flex items-center space-x-2">
           <input
             type="file"
@@ -478,7 +478,7 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
           />
           <button
             type="button"
-            onClick={() => tenthMemoRef.current?.click()}
+            onClick={() => interMemoRef.current?.click()}
             className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
           >
                   Upload Mark Memo
@@ -490,7 +490,7 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="interBoard" className="block text-sm font-medium text-gray-700">Board/University</label>
+                <label htmlFor="interBoard" className="block text-sm font-medium text-gray-700">College Name</label>
                 <input
                   type="text"
                   id="interBoard"
