@@ -38,17 +38,34 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
     references: '',
     declaration: false,
     passportPhoto: null as File | null,
-    tenthMemo: null as File | null
+    tenthMemo: null as File | null,
+    interMemo: null as File | null,
+    diplomaMemo: null as File | null,
+    graduationMemo: null as File | null
   });
 
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const memoInputRef = useRef<HTMLInputElement>(null);
+  const tenthMemoRef = useRef<HTMLInputElement>(null);
+  const interMemoRef = useRef<HTMLInputElement>(null);
+  const diplomaMemoRef = useRef<HTMLInputElement>(null);
+  const graduationMemoRef = useRef<HTMLInputElement>(null);
+
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'tenthMemo' | 'interMemo' | 'diplomaMemo' | 'graduationMemo') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        [fileType]: file
+      }));
+    }
+  };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData({ ...formData, passportPhoto: file });
+      setFormData(prev => ({ ...prev, passportPhoto: file }));
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result as string);
@@ -57,17 +74,9 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
     }
   };
 
-  const handleMemoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, tenthMemo: file });
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Create email body with form data
     const emailBody = `
 New Job Application
 
@@ -98,14 +107,11 @@ Professional Information:
 - Total Experience: ${formData.experience} years
     `.trim();
 
-    // Encode the email body for the mailto link
     const encodedBody = encodeURIComponent(emailBody);
     const mailtoLink = `mailto:bhemsociety@gmail.com?subject=New Job Application - ${formData.firstName} ${formData.lastName}&body=${encodedBody}`;
 
-    // Open the email client
     window.location.href = mailtoLink;
 
-    // Show success message and close form
     alert('Application submitted successfully! Your email client will open to send the application.');
     onSubmitSuccess?.();
   };
@@ -157,7 +163,6 @@ Professional Information:
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Personal Information */}
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-blue-900 border-b pb-2">Personal Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -269,7 +274,6 @@ Professional Information:
           </div>
         </div>
 
-        {/* Contact Information */}
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-blue-900 border-b pb-2">Contact Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -331,113 +335,36 @@ Professional Information:
           </div>
         </div>
 
-        {/* Educational Information */}
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-blue-900 border-b pb-2">Educational Information</h3>
           
-          {/* 10th Details with Mark Memo Upload */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h4 className="text-lg font-medium text-gray-700">10th Details</h4>
               <div className="flex items-center space-x-2">
                 <input
                   type="file"
-                  ref={memoInputRef}
+                  ref={tenthMemoRef}
                   accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleMemoChange}
+                  onChange={(e) => handleFileUpload(e, 'tenthMemo')}
                   className="hidden"
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => memoInputRef.current?.click()}
+                  onClick={() => tenthMemoRef.current?.click()}
                   className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
                 >
                   Upload Mark Memo
                 </button>
                 {formData.tenthMemo && (
-                  <span className="text-sm text-green-600">✓ Uploaded</span>
+                  <span className="text-sm text-green-600">✓ {formData.tenthMemo.name}</span>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">School Name</label>
-                <input
-                  type="text"
-                  id="tenthBoard"
-                  name="tenthBoard"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="tenthYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
-                <input
-                  type="number"
-                  id="tenthYear"
-                  name="tenthYear"
-                  required
-                  min="1990"
-                  max="2025"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="tenthPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
-                <input
-                  type="number"
-                  id="tenthPercentage"
-                  name="tenthPercentage"
-                  required
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-            <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-lg font-medium text-gray-700">Intermediate Details</h4>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="file"
-                  ref={memoInputRef}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleMemoChange}
-                  className="hidden"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => memoInputRef.current?.click()}
-                  className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
-                >
-                  Upload Mark Memo
-                </button>
-                {formData.tenthMemo && (
-                  <span className="text-sm text-green-600">✓ Uploaded</span>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">College Name</label>
-                <input
-                  type="text"
-                  id="tenthBoard"
-                  name="tenthBoard"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">Branch</label>
+                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">Board/University</label>
                 <input
                   type="text"
                   id="tenthBoard"
@@ -476,59 +403,115 @@ Professional Information:
               </div>
             </div>
           </div>
+
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h4 className="text-lg font-medium text-gray-700">Intermediate Details</h4>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="file"
+                  ref={interMemoRef}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => handleFileUpload(e, 'interMemo')}
+                  className="hidden"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => interMemoRef.current?.click()}
+                  className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
+                >
+                  Upload Mark Memo
+                </button>
+                {formData.interMemo && (
+                  <span className="text-sm text-green-600">✓ {formData.interMemo.name}</span>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="interBoard" className="block text-sm font-medium text-gray-700">Board/University</label>
+                <input
+                  type="text"
+                  id="interBoard"
+                  name="interBoard"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label htmlFor="interYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
+                <input
+                  type="number"
+                  id="interYear"
+                  name="interYear"
+                  required
+                  min="1990"
+                  max="2025"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label htmlFor="interPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
+                <input
+                  type="number"
+                  id="interPercentage"
+                  name="interPercentage"
+                  required
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h4 className="text-lg font-medium text-gray-700">Diploma</h4>
               <div className="flex items-center space-x-2">
                 <input
                   type="file"
-                  ref={memoInputRef}
+                  ref={diplomaMemoRef}
                   accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleMemoChange}
+                  onChange={(e) => handleFileUpload(e, 'diplomaMemo')}
                   className="hidden"
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => memoInputRef.current?.click()}
+                  onClick={() => diplomaMemoRef.current?.click()}
                   className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
                 >
                   Upload Mark Memo
                 </button>
-                {formData.tenthMemo && (
-                  <span className="text-sm text-green-600">✓ Uploaded</span>
+                {formData.diplomaMemo && (
+                  <span className="text-sm text-green-600">✓ {formData.diplomaMemo.name}</span>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">College/University</label>
+                <label htmlFor="diplomaBoard" className="block text-sm font-medium text-gray-700">Board/University</label>
                 <input
                   type="text"
-                  id="tenthBoard"
-                  name="tenthBoard"
+                  id="diplomaBoard"
+                  name="diplomaBoard"
                   required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">Branch</label>
-                <input
-                  type="text"
-                  id="tenthBoard"
-                  name="tenthBoard"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="tenthYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
+                <label htmlFor="diplomaYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
                 <input
                   type="number"
-                  id="tenthYear"
-                  name="tenthYear"
+                  id="diplomaYear"
+                  name="diplomaYear"
                   required
                   min="1990"
                   max="2025"
@@ -537,11 +520,11 @@ Professional Information:
                 />
               </div>
               <div>
-                <label htmlFor="tenthPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
+                <label htmlFor="diplomaPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
                 <input
                   type="number"
-                  id="tenthPercentage"
-                  name="tenthPercentage"
+                  id="diplomaPercentage"
+                  name="diplomaPercentage"
                   required
                   step="0.01"
                   min="0"
@@ -552,59 +535,49 @@ Professional Information:
               </div>
             </div>
           </div>
+
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h4 className="text-lg font-medium text-gray-700">Graduation</h4>
               <div className="flex items-center space-x-2">
                 <input
                   type="file"
-                  ref={memoInputRef}
+                  ref={graduationMemoRef}
                   accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleMemoChange}
+                  onChange={(e) => handleFileUpload(e, 'graduationMemo')}
                   className="hidden"
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => memoInputRef.current?.click()}
+                  onClick={() => graduationMemoRef.current?.click()}
                   className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
                 >
                   Upload Mark Memo
                 </button>
-                {formData.tenthMemo && (
-                  <span className="text-sm text-green-600">✓ Uploaded</span>
+                {formData.graduationMemo && (
+                  <span className="text-sm text-green-600">✓ {formData.graduationMemo.name}</span>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">College/University</label>
+                <label htmlFor="graduationBoard" className="block text-sm font-medium text-gray-700">Board/University</label>
                 <input
                   type="text"
-                  id="tenthBoard"
-                  name="tenthBoard"
+                  id="graduationBoard"
+                  name="graduationBoard"
                   required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">Branch</label>
-                <input
-                  type="text"
-                  id="tenthBoard"
-                  name="tenthBoard"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="tenthYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
+                <label htmlFor="graduationYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
                 <input
                   type="number"
-                  id="tenthYear"
-                  name="tenthYear"
+                  id="graduationYear"
+                  name="graduationYear"
                   required
                   min="1990"
                   max="2025"
@@ -613,52 +586,15 @@ Professional Information:
                 />
               </div>
               <div>
-                <label htmlFor="tenthPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
+                <label htmlFor="graduationPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
                 <input
                   type="number"
-                  id="tenthPercentage"
-                  name="tenthPercentage"
+                  id="graduationPercentage"
+                  name="graduationPercentage"
                   required
                   step="0.01"
                   min="0"
                   max="100"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-                <div>
-                  
-                </div>
-              </div>
-            </div>
-          </div>
-          </div>
-
-          {/* Professional Information */}
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-blue-900 border-b pb-2">Professional Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="position" className="block text-sm font-medium text-gray-700">Position Applied For</label>
-                <select
-                  id="position"
-                  name="position"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                >
-                  <option value="">Select Position</option>
-                  <option value="lascar">Lascar Services</option>
-                  <option value="helper">Helper Services</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="experience" className="block text-sm font-medium text-gray-700">Total Experience (Years)</label>
-                <input
-                  type="number"
-                  id="experience"
-                  name="experience"
-                  min="0"
-                  required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   onChange={handleChange}
                 />
@@ -667,7 +603,38 @@ Professional Information:
           </div>
         </div>
 
-        {/* Declaration */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-blue-900 border-b pb-2">Professional Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="position" className="block text-sm font-medium text-gray-700">Position Applied For</label>
+              <select
+                id="position"
+                name="position"
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                onChange={handleChange}
+              >
+                <option value="">Select Position</option>
+                <option value="lascar">Lascar Services</option>
+                <option value="helper">Helper Services</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="experience" className="block text-sm font-medium text-gray-700">Total Experience (Years)</label>
+              <input
+                type="number"
+                id="experience"
+                name="experience"
+                min="0"
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-4">
           <div className="flex items-start">
             <div className="flex items-center h-5">
