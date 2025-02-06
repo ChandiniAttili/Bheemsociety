@@ -41,23 +41,52 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      {/* Title and Subtitles */}
-      <h1 className="text-4xl md:text-5xl font-black text-blue-600 text-center pt-24 pb-0 mb-0">
-        <center>Bheem Society</center>
-      </h1>
-      <h4 className="text-3xl md:text-4xl font-black text-green-600 text-center pt-0 mt-0">
-        <center>Registered Government of Telangana</center>
-      </h4>
-      <h6 className="text-2xl md:text-2xl font-black text-red-400 text-center pt-0 mt-0">
-        <center>Govt.Out Sourcing Jobs</center>
-      </h6>
-      
-      <div className="absolute animate-scroll">
-        <p className="text-lg font-semibold text-orange-900">
-          <span className="text-blue-500 font-bold animate-pulse">[new]</span>
-          ***1878 outsourcing jobs available in the irrigation administrative control of Engineer in Chief (Admn)***
-        </p>
+
+      {/* Flex Container for Text */}
+      <div className="text-center pt-24 pb-12">
+        <h1 className="text-4xl md:text-5xl font-black text-blue-600 mb-4">Bheem Society</h1>
+        <h4 className="text-3xl md:text-4xl font-black text-green-600 mb-2">
+          Registered Government of Telangana
+        </h4>
+        <h6 className="text-2xl md:text-2xl font-black text-red-400 mb-4">Govt. Outsourcing Jobs</h6>
+
+        <div className="absolute animate-scroll mb-8">
+          <p className="text-lg font-semibold text-orange-900">
+            <span className="text-blue-500 font-bold animate-pulse">[new]</span>
+            ***1878 outsourcing jobs available in the irrigation administrative control of Engineer in Chief (Admn)***
+          </p>
+        </div>
+      </div>
+
+      {/* Profile Section with Images Centered Below the Text */}
+      <div className="flex flex-col md:flex-row justify-center items-center gap-12 mb-16">
+        {/* Profile 1 */}
+        <div className="text-center mb-12 md:w-1/3">
+          <div className="mb-6">
+            <img
+              src="/img3.jpeg"
+              alt="Srikanth Rathnam"
+              className="w-48 h-48 rounded-full object-cover shadow-lg mx-auto"
+            />
+          </div>
+          <h3 className="text-2xl font-bold mb-2 text-blue-600">Srikanth Rathnam, B.Sc</h3>
+          <p className="text-xl font-bold text-green-600 mb-4">Chairman</p>
+          <p className="text-gray-600">Bheem Society Pvt.Ltd</p>
+        </div>
+
+        {/* Profile 2 */}
+        <div className="text-center mb-12 md:w-1/3">
+          <div className="mb-6">
+            <img
+              src="/d2.jpeg"
+              alt="P. Dharmendra"
+              className="w-48 h-48 rounded-full object-cover shadow-lg mx-auto"
+            />
+          </div>
+          <h3 className="text-2xl font-bold mb-2 text-blue-600">P. Dharmendra</h3>
+          <p className="text-xl font-bold text-green-600 mb-4">CEO</p>
+          <p className="text-gray-600">Bheem Society Pvt.Ltd</p>
+        </div>
       </div>
 
       {/* About Section with images carousel */}
@@ -73,6 +102,8 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      {/* About Section */}
       <AboutSection />
 
       <main className="pt-16">
