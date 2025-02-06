@@ -31,7 +31,7 @@ export default function App() {
         <div className="absolute animate-scroll">
           <p className="text-lg font-semibold text-orange-900">
           <span className="text-blue-500 font-bold animate-pulse">[new]</span>
-            ***1878 out sourcing jobs available under the irrigation administrative control of Engineer in Chief (Admn)***
+            ***1878 out sourcing jobs available in the irrigation administrative control of Engineer in Chief (Admn)***
           </p>
         </div>
       <AboutSection />

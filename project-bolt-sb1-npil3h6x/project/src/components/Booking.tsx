@@ -4,7 +4,7 @@ interface ApplicationFormProps {
   onSubmitSuccess?: () => void;
 }
 
-export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
+function App({ onSubmitSuccess }: ApplicationFormProps) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -64,24 +64,21 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
-  // Handle file upload for all memos
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'tenthMemo' | 'interMemo' | 'diplomaMemo' | 'graduationMemo') => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size and type
       const allowedFormats = ['image/jpeg', 'application/pdf'];
-      const maxSize = fileType === 'tenthMemo' ? 500000 : 171000; // Set 500KB for tenthMemo, 171KB for passport photo
+      const maxSize = 500000; // 500KB for documents
 
-      if (allowedFormats.indexOf(file.type) === -1) { // Changed includes to indexOf for compatibility
+      if (allowedFormats.indexOf(file.type) === -1) {
         alert('Invalid file format. Only JPG, JPEG, PNG, and PDF are allowed.');
         return;
       }
       if (file.size > maxSize) {
-        alert(`File is too large. Please upload a file smaller than ${fileType === 'tenthMemo' ? '500 KB' : '171 KB'}.`);
+        alert('File is too large. Please upload a file smaller than 500 KB.');
         return;
       }
 
-      // If valid, update the form data
       setFormData(prev => ({
         ...prev,
         [fileType]: file
@@ -89,10 +86,14 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
     }
   };
 
-  // Handle photo upload
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const maxSize = 171000; // 171KB for passport photo
+      if (file.size > maxSize) {
+        alert('Photo is too large. Please upload a photo smaller than 171 KB.');
+        return;
+      }
       setFormData(prev => ({ ...prev, passportPhoto: file }));
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -102,7 +103,6 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
     }
   };
 
-  // Convert file to base64
   const convertFileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -112,11 +112,9 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Convert all files to base64
     const fileAttachments = [];
     
     if (formData.passportPhoto) {
@@ -159,22 +157,60 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
       });
     }
 
-    // Create email body with form data and attachments
-    const emailBody = `...`; // The rest of your email content
+    const emailBody = `
+      Job Application Details:
+      
+      Personal Information:
+      Name: ${formData.firstName} ${formData.lastName}
+      Father's Name: ${formData.fatherName}
+      Date of Birth: ${formData.dateOfBirth}
+      Gender: ${formData.gender}
+      Category: ${formData.category}
+      Physically Handicapped: ${formData.handicapped}
+      Adhar Number: ${formData.adharnumber}
+      
+      Contact Information:
+      Email: ${formData.email}
+      Phone: ${formData.phone}
+      Address: ${formData.address}
+      City: ${formData.city}
+      Pincode: ${formData.pincode}
+      
+      Educational Information:
+      10th Details:
+      School: ${formData.tenthBoard}
+      Year: ${formData.tenthYear}
+      Percentage: ${formData.tenthPercentage}
+      
+      Intermediate Details:
+      College: ${formData.interBoard}
+      Year: ${formData.interYear}
+      Percentage: ${formData.interPercentage}
+      
+      Diploma Details:
+      Board: ${formData.diplomaBoard}
+      Year: ${formData.diplomaYear}
+      Percentage: ${formData.diplomaPercentage}
+      
+      Graduation Details:
+      University: ${formData.graduationBoard}
+      Year: ${formData.graduationYear}
+      Percentage: ${formData.graduationPercentage}
+      
+      Professional Information:
+      Position Applied For: ${formData.position}
+      Total Experience: ${formData.experience} years
+    `;
 
-    // Encode the email body for the mailto link
     const encodedBody = encodeURIComponent(emailBody);
     const mailtoLink = `mailto:bhemsociety@gmail.com?subject=New Job Application - ${formData.firstName} ${formData.lastName}&body=${encodedBody}`;
 
-    // Open the email client
     window.location.href = mailtoLink;
 
-    // Show success message and close form
     alert('Application submitted successfully! Your email client will open to send the application with all attachments.');
     onSubmitSuccess?.();
   };
 
-  // Handle change for form fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
     setFormData({
@@ -182,7 +218,6 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
       [e.target.name]: value
     });
   };
-
 
   return (
     <div className="p-8">
@@ -465,22 +500,22 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
           </div>
 
           <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h4 className="text-lg font-medium text-gray-700">Intermediate Details</h4>
-        <div className="flex items-center space-x-2">
-          <input
-            type="file"
-            ref={tenthMemoRef}
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={(e) => handleFileUpload(e, 'tenthMemo')}
-            className="hidden"
-            required
-          />
-          <button
-            type="button"
-            onClick={() => interMemoRef.current?.click()}
-            className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
-          >
+            <div className="flex justify-between items-center">
+              <h4 className="text-lg font-medium text-gray-700">Intermediate Details</h4>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="file"
+                  ref={interMemoRef}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => handleFileUpload(e, 'interMemo')}
+                  className="hidden"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => interMemoRef.current?.click()}
+                  className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
+                >
                   Upload Mark Memo
                 </button>
                 {formData.interMemo && (
@@ -726,3 +761,5 @@ export default function ApplicationForm({ onSubmitSuccess }: ApplicationFormProp
     </div>
   );
 }
+
+export default App;

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es6", // You can update this to "es2017" or later if needed.
     "module": "esnext",
     "strict": true,
     "jsx": "react",
@@ -8,13 +8,13 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "lib": ["es2017", "dom"], // Add "es2017" to support Object.entries.
     "typeRoots": [
       "./node_modules/@types",
-      "./src/types"  // Add this line to include your custom types
+      "./src/types"
     ]
   },
   "include": [
-    "src/**/*"  // Include all files in the src directory
+    "src/**/*"
   ]
 }
-
