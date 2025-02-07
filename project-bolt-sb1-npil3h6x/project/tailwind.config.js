@@ -3,6 +3,9 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      colors: {
+        maroon: '#800000', // Define the maroon color
+      },
       animation: {
         scroll: 'scroll 15s linear infinite', // scrolling animation
         blink: 'blink 1s step-start infinite', // custom blink animation
