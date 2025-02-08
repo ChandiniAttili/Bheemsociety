@@ -4,78 +4,182 @@ interface ApplicationFormProps {
   onSubmitSuccess?: () => void;
 }
 
-function App({ onSubmitSuccess }: ApplicationFormProps) {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    fatherName: '',
-    dateOfBirth: '',
-    gender: '',
-    maritalStatus: '',
-    category: '',
-    handicapped: '',
-    adharnumber: '',
-    email: '',
-    phone: '',
-    alternatePhone: '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
-    education: '',
-    university: '',
-    yearOfPassing: '',
-    percentage: '',
-    position: '',
-    experience: '',
-    currentEmployer: '',
-    currentSalary: '',
-    expectedSalary: '',
-    resume: '',
-    idProof: '',
-    photo: '',
-    tenthBoard: '',
-    tenthYear: '',
-    tenthPercentage: '',
-    interPercentage: '',
-    interYear: '',
-    interBoard: '',
-    graduationBoard: '',
-    graduationYear: '',
-    graduationPercentage: '',
-    diplomaBoard: '',
-    diplomaPercentage: '',
-    diplomaYear: '',
-    languages: '',
-    references: '',
-    declaration: false,
-    passportPhoto: null as File | null,
-    tenthMemo: null as File | null,
-    interMemo: null as File | null,
-    diplomaMemo: null as File | null,
-    graduationMemo: null as File | null
-  });
+interface FormData {
+  firstName: string;
+  lastName: string;
+  fatherName: string;
+  dateOfBirth: string;
+  gender: string;
+  category: string;
+  handicapped: string;
+  adharnumber: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  pincode: string;
+  position: string;
+  experience: string;
+  passportPhoto: File | null;
+  tenthApplicable: string;
+  tenthBoard: string;
+  tenthYear: string;
+  tenthPercentage: string;
+  tenthMemo: File | null;
+  interApplicable: string;
+  interBoard: string;
+  interYear: string;
+  interPercentage: string;
+  interMemo: File | null;
+  diplomaApplicable: string;
+  diplomaBoard: string;
+  diplomaYear: string;
+  diplomaPercentage: string;
+  diplomaMemo: File | null;
+  graduationApplicable: string;
+  graduationBoard: string;
+  graduationYear: string;
+  graduationPercentage: string;
+  graduationMemo: File | null;
+}
 
-  const photoInputRef = useRef<HTMLInputElement>(null);
-  const tenthMemoRef = useRef<HTMLInputElement>(null);
-  const interMemoRef = useRef<HTMLInputElement>(null);
-  const diplomaMemoRef = useRef<HTMLInputElement>(null);
-  const graduationMemoRef = useRef<HTMLInputElement>(null);
+const initialFormData: FormData = {
+  firstName: '',
+  lastName: '',
+  fatherName: '',
+  dateOfBirth: '',
+  gender: '',
+  category: '',
+  handicapped: 'no',
+  adharnumber: '',
+  email: '',
+  phone: '',
+  address: '',
+  city: '',
+  pincode: '',
+  position: '',
+  experience: '',
+  passportPhoto: null,
+  tenthApplicable: 'yes',
+  tenthBoard: '',
+  tenthYear: '',
+  tenthPercentage: '',
+  tenthMemo: null,
+  interApplicable: 'yes',
+  interBoard: '',
+  interYear: '',
+  interPercentage: '',
+  interMemo: null,
+  diplomaApplicable: 'no',
+  diplomaBoard: 'N/A',
+  diplomaYear: 'N/A',
+  diplomaPercentage: 'N/A',
+  diplomaMemo: null,
+  graduationApplicable: 'yes',
+  graduationBoard: '',
+  graduationYear: '',
+  graduationPercentage: '',
+  graduationMemo: null
+};
 
+function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
+  const [formData, setFormData] = useState<FormData>(initialFormData);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'tenthMemo' | 'interMemo' | 'diplomaMemo' | 'graduationMemo') => {
+  const fileRefs = {
+    photo: useRef<HTMLInputElement>(null),
+    tenthMemo: useRef<HTMLInputElement>(null),
+    interMemo: useRef<HTMLInputElement>(null),
+    diplomaMemo: useRef<HTMLInputElement>(null),
+    graduationMemo: useRef<HTMLInputElement>(null)
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof FormData, string>> = {};
+
+    // Required field validation
+    const requiredFields: Array<keyof FormData> = [
+      'firstName', 'lastName', 'fatherName', 'dateOfBirth', 'gender',
+      'category', 'email', 'phone', 'address', 'city', 'pincode',
+      'position', 'experience', 'passportPhoto'
+    ];
+
+    requiredFields.forEach(field => {
+      if (!formData[field]) {
+        newErrors[field] = 'This field is required';
+      }
+    });
+
+    // Email validation
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Phone validation
+    if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+    }
+
+    // Aadhar validation
+    if (formData.adharnumber && !/^\d{12}$/.test(formData.adharnumber)) {
+      newErrors.adharnumber = 'Please enter a valid 12-digit Aadhar number';
+    }
+
+    // Education section validation
+    const validateEducation = (section: string) => {
+      if (formData[`${section}Applicable` as keyof FormData] === 'yes') {
+        if (!formData[`${section}Board` as keyof FormData]) 
+          newErrors[`${section}Board` as keyof FormData] = 'Board/University is required';
+        if (!formData[`${section}Year` as keyof FormData]) 
+          newErrors[`${section}Year` as keyof FormData] = 'Year is required';
+        if (!formData[`${section}Percentage` as keyof FormData]) 
+          newErrors[`${section}Percentage` as keyof FormData] = 'Percentage is required';
+        if (!formData[`${section}Memo` as keyof FormData]) 
+          newErrors[`${section}Memo` as keyof FormData] = 'Please upload memo';
+      }
+    };
+
+    ['tenth', 'inter', 'diploma', 'graduation'].forEach(validateEducation);
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleApplicableChange = (e: React.ChangeEvent<HTMLSelectElement>, section: string) => {
+    const { value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [`${section}Applicable`]: value,
+      ...(value === 'no' && {
+        [`${section}Board`]: 'N/A',
+        [`${section}Year`]: 'N/A',
+        [`${section}Percentage`]: 'N/A',
+        [`${section}Memo`]: null
+      })
+    }));
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fileType: keyof FormData) => {
     const file = e.target.files?.[0];
     if (file) {
-      const allowedFormats = ['image/jpeg', 'application/pdf'];
-      const maxSize = 500000; // 500KB for documents
+      const allowedFormats = ['image/jpeg', 'image/png', 'application/pdf'];
+      const maxSize = fileType === 'passportPhoto' ? 171000 : 500000;
 
-      if (allowedFormats.indexOf(file.type) === -1) {
-        alert('Invalid file format. Only JPG, JPEG, PNG, and PDF are allowed.');
+      if (!allowedFormats.includes(file.type)) {
+        setErrors(prev => ({
+          ...prev,
+          [fileType]: 'Invalid file format. Only JPG, PNG, and PDF are allowed.'
+        }));
         return;
       }
+
       if (file.size > maxSize) {
-        alert('File is too large. Please upload a file smaller than 500 KB.');
+        setErrors(prev => ({
+          ...prev,
+          [fileType]: `File must be smaller than ${maxSize / 1000}KB`
+        }));
         return;
       }
 
@@ -83,24 +187,35 @@ function App({ onSubmitSuccess }: ApplicationFormProps) {
         ...prev,
         [fileType]: file
       }));
+
+      if (fileType === 'passportPhoto') {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPhotoPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      setErrors(prev => ({
+        ...prev,
+        [fileType]: undefined
+      }));
     }
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const maxSize = 171000; // 171KB for passport photo
-      if (file.size > maxSize) {
-        alert('Photo is too large. Please upload a photo smaller than 171 KB.');
-        return;
-      }
-      setFormData(prev => ({ ...prev, passportPhoto: file }));
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const finalValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: finalValue
+    }));
+
+    setErrors(prev => ({
+      ...prev,
+      [name]: undefined
+    }));
   };
 
   const convertFileToBase64 = (file: File): Promise<string> => {
@@ -112,654 +227,512 @@ function App({ onSubmitSuccess }: ApplicationFormProps) {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const fileAttachments = [];
-    
-    if (formData.passportPhoto) {
-      const photoBase64 = await convertFileToBase64(formData.passportPhoto);
-      fileAttachments.push({
-        name: 'Passport Photo',
-        data: photoBase64
-      });
-    }
-
-    if (formData.tenthMemo) {
-      const tenthMemoBase64 = await convertFileToBase64(formData.tenthMemo);
-      fileAttachments.push({
-        name: '10th Memo',
-        data: tenthMemoBase64
-      });
-    }
-
-    if (formData.interMemo) {
-      const interMemoBase64 = await convertFileToBase64(formData.interMemo);
-      fileAttachments.push({
-        name: 'Intermediate Memo',
-        data: interMemoBase64
-      });
-    }
-
-    if (formData.diplomaMemo) {
-      const diplomaMemoBase64 = await convertFileToBase64(formData.diplomaMemo);
-      fileAttachments.push({
-        name: 'Diploma Memo',
-        data: diplomaMemoBase64
-      });
-    }
-
-    if (formData.graduationMemo) {
-      const graduationMemoBase64 = await convertFileToBase64(formData.graduationMemo);
-      fileAttachments.push({
-        name: 'Graduation Memo',
-        data: graduationMemoBase64
-      });
-    }
-
-    const emailBody = `
+  const generateEmailBody = (data: FormData): string => {
+    return `
       Job Application Details:
       
       Personal Information:
-      Name: ${formData.firstName} ${formData.lastName}
-      Father's Name: ${formData.fatherName}
-      Date of Birth: ${formData.dateOfBirth}
-      Gender: ${formData.gender}
-      Category: ${formData.category}
-      Physically Handicapped: ${formData.handicapped}
-      Adhar Number: ${formData.adharnumber}
+      Name: ${data.firstName} ${data.lastName}
+      Father's Name: ${data.fatherName}
+      Date of Birth: ${data.dateOfBirth}
+      Gender: ${data.gender}
+      Category: ${data.category}
+      Physically Handicapped: ${data.handicapped}
+      Aadhar Number: ${data.adharnumber}
       
       Contact Information:
-      Email: ${formData.email}
-      Phone: ${formData.phone}
-      Address: ${formData.address}
-      City: ${formData.city}
-      Pincode: ${formData.pincode}
+      Email: ${data.email}
+      Phone: ${data.phone}
+      Address: ${data.address}
+      City: ${data.city}
+      Pincode: ${data.pincode}
       
       Educational Information:
+      ${data.tenthApplicable === 'yes' ? `
       10th Details:
-      School: ${formData.tenthBoard}
-      Year: ${formData.tenthYear}
-      Percentage: ${formData.tenthPercentage}
+      School: ${data.tenthBoard}
+      Year: ${data.tenthYear}
+      Percentage: ${data.tenthPercentage}
+      ` : '10th: Not Applicable'}
       
+      ${data.interApplicable === 'yes' ? `
       Intermediate Details:
-      College: ${formData.interBoard}
-      Year: ${formData.interYear}
-      Percentage: ${formData.interPercentage}
+      College: ${data.interBoard}
+      Year: ${data.interYear}
+      Percentage: ${data.interPercentage}
+      ` : 'Intermediate: Not Applicable'}
       
+      ${data.diplomaApplicable === 'yes' ? `
       Diploma Details:
-      Board: ${formData.diplomaBoard}
-      Year: ${formData.diplomaYear}
-      Percentage: ${formData.diplomaPercentage}
+      Board: ${data.diplomaBoard}
+      Year: ${data.diplomaYear}
+      Percentage: ${data.diplomaPercentage}
+      ` : 'Diploma: Not Applicable'}
       
+      ${data.graduationApplicable === 'yes' ? `
       Graduation Details:
-      University: ${formData.graduationBoard}
-      Year: ${formData.graduationYear}
-      Percentage: ${formData.graduationPercentage}
+      University: ${data.graduationBoard}
+      Year: ${data.graduationYear}
+      Percentage: ${data.graduationPercentage}
+      ` : 'Graduation: Not Applicable'}
       
       Professional Information:
-      Position Applied For: ${formData.position}
-      Total Experience: ${formData.experience} years
+      Position Applied For: ${data.position}
+      Total Experience: ${data.experience} years
     `;
-
-    const encodedBody = encodeURIComponent(emailBody);
-    const mailtoLink = `mailto:bhemsociety@gmail.com?subject=New Job Application - ${formData.firstName} ${formData.lastName}&body=${encodedBody}`;
-
-    window.location.href = mailtoLink;
-
-    alert('Application submitted successfully! Your email client will open to send the application with all attachments.');
-    onSubmitSuccess?.();
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
-    setFormData({
-      ...formData,
-      [e.target.name]: value
-    });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      alert('Please fill in all required fields correctly.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const fileAttachments = [];
+      
+      if (formData.passportPhoto) {
+        const photoBase64 = await convertFileToBase64(formData.passportPhoto);
+        fileAttachments.push({
+          name: 'Passport Photo',
+          data: photoBase64
+        });
+      }
+
+      const educationSections = ['tenth', 'inter', 'diploma', 'graduation'];
+      for (const section of educationSections) {
+        if (formData[`${section}Applicable` as keyof FormData] === 'yes' && 
+            formData[`${section}Memo` as keyof FormData]) {
+          const memoBase64 = await convertFileToBase64(formData[`${section}Memo` as keyof FormData] as File);
+          fileAttachments.push({
+            name: `${section.charAt(0).toUpperCase() + section.slice(1)} Memo`,
+            data: memoBase64
+          });
+        }
+      }
+
+      const emailBody = generateEmailBody(formData);
+      const encodedBody = encodeURIComponent(emailBody);
+      const mailtoLink = `mailto:bhemsociety@gmail.com?subject=New Job Application - ${formData.firstName} ${formData.lastName}&body=${encodedBody}`;
+
+      window.location.href = mailtoLink;
+      
+      onSubmitSuccess?.();
+      alert('Application submitted successfully! Your email client will open to send the application.');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('An error occurred while submitting the form. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderEducationSection = (
+    section: string,
+    title: string,
+    institutionLabel: string
+  ) => {
+    const applicable = formData[`${section}Applicable` as keyof FormData];
+    
+    return (
+      <div className="space-y-4 border-b pb-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">{title}</h3>
+          <select
+            name={`${section}Applicable`}
+            value={applicable as string}
+            onChange={(e) => handleApplicableChange(e, section)}
+            className="border rounded px-3 py-1"
+          >
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        {applicable === 'yes' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                {institutionLabel}
+              </label>
+              <input
+                type="text"
+                name={`${section}Board`}
+                value={formData[`${section}Board` as keyof FormData] as string}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              />
+              {errors[`${section}Board` as keyof FormData] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`${section}Board` as keyof FormData]}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Year</label>
+              <input
+                type="text"
+                name={`${section}Year`}
+                value={formData[`${section}Year` as keyof FormData] as string}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              />
+              {errors[`${section}Year` as keyof FormData] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`${section}Year` as keyof FormData]}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Percentage
+              </label>
+              <input
+                type="text"
+                name={`${section}Percentage`}
+                value={formData[`${section}Percentage` as keyof FormData] as string}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              />
+              {errors[`${section}Percentage` as keyof FormData] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`${section}Percentage` as keyof FormData]}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Upload Memo
+              </label>
+              <input
+  type="file"
+  onChange={(e) => handleFileUpload(e, `${section}Memo` as keyof FormData)}
+  accept=".pdf,.jpg,.jpeg,.png"
+  className="w-full"
+/>
+
+
+              {errors[`${section}Memo` as keyof FormData] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[`${section}Memo` as keyof FormData]}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-start mb-8">
-        <h2 className="text-3xl font-bold text-blue-900">Job Application Form</h2>
-        <div className="w-32">
-          <div className="relative">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center">
-              {photoPreview ? (
-                <img
-                  src={photoPreview}
-                  alt="Passport Photo"
-                  className="w-full h-40 object-cover rounded"
-                />
-              ) : (
-                <div className="h-40 flex items-center justify-center bg-gray-50 rounded">
-                  <span className="text-sm text-gray-500">Upload Photo</span>
-                </div>
-              )}
-            </div>
+    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Personal Information Section */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold border-b pb-2">Personal Information</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-1">First Name</label>
             <input
-              type="file"
-              ref={photoInputRef}
-              accept="image/*"
-              onChange={handlePhotoChange}
-              className="hidden"
-              required
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
             />
-            <button
-              type="button"
-              onClick={() => photoInputRef.current?.click()}
-              className="mt-2 w-full text-sm bg-blue-600 text-white py-1 px-2 rounded hover:bg-blue-700"
+            {errors.firstName && (
+              <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Last Name</label>
+            <input
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            />
+            {errors.lastName && (
+              <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Father's Name</label>
+            <input
+              type="text"
+              name="fatherName"
+              value={formData.fatherName}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            />
+            {errors.fatherName && (
+              <p className="text-red-500 text-sm mt-1">{errors.fatherName}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Date of Birth</label>
+            <input
+              type="date"
+              name="dateOfBirth"
+              value={formData.dateOfBirth}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            />
+            {errors.dateOfBirth && (
+              <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Gender</label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
             >
-              Choose Photo
-            </button>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+            {errors.gender && (
+              <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="">Select Category</option>
+              <option value="general">General</option>
+              <option value="obc">OBC</option>
+              <option value="sc">SC</option>
+              <option value="st">ST</option>
+            </select>
+            {errors.category && (
+              <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Physically Handicapped</label>
+            <select
+              name="handicapped"
+              value={formData.handicapped}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Aadhar Number</label>
+            <input
+              type="text"
+              name="adharnumber"
+              value={formData.adharnumber}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+              maxLength={12}
+            />
+            {errors.adharnumber && (
+              <p className="text-red-500 text-sm mt-1">{errors.adharnumber}</p>
+            )}
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-blue-900 border-b pb-2">Personal Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="fatherName" className="block text-sm font-medium text-gray-700">Father's Name</label>
-              <input
-                type="text"
-                id="fatherName"
-                name="fatherName"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">Date of Birth</label>
-              <input
-                type="date"
-                id="dateOfBirth"
-                name="dateOfBirth"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="handicapped" className="block text-sm font-medium text-gray-700">Physical Handicapped</label>
-              <select
-                id="handicapped"
-                name="handicapped"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              >
-                <option value="">Select</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Gender</label>
-              <select
-                id="gender"
-                name="gender"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-              <select
-                id="category"
-                name="category"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              >
-                <option value="">Select Category</option>
-                <option value="general">General</option>
-                <option value="OC">OC</option>
-                <option value="BC-A">BC-A</option>
-                <option value="BC-B">BC-B</option>
-                <option value="BC-C">BC-C</option>
-                <option value="BC-D">BC-D</option>
-                <option value="BC-E">BC-E</option>
-                <option value="sc">SC</option>
-                <option value="st">ST</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="adharnumber" className="block text-sm font-medium text-gray-700">Adhar Number</label>
-              <input
-                type="text"
-                id="adharnumber"
-                name="adharnumber"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
+      {/* Contact Information Section */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold border-b pb-2">Contact Information</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Phone Number</label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+              maxLength={10}
+            />
+            {errors.phone && (
+              <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+            )}
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1">Address</label>
+            <textarea
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              rows={3}
+              className="w-full border rounded px-3 py-2"
+            />
+            {errors.address && (
+              <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">City</label>
+            <input
+              type="text"
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            />
+            {errors.city && (
+              <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Pincode</label>
+            <input
+              type="text"
+              name="pincode"
+              value={formData.pincode}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+              maxLength={6}
+            />
+            {errors.pincode && (
+              <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>
+            )}
           </div>
         </div>
+      </div>
 
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-blue-900 border-b pb-2">Contact Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Photo Upload Section */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold border-b pb-2">Passport Photo</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Upload Photo (Max size: 171KB)
+            </label>
+            <input
+              type="file"
+              ref={fileRefs.photo}
+              onChange={(e) => handleFileUpload(e, 'passportPhoto')}
+              accept=".jpg,.jpeg,.png"
+              className="w-full"
+            />
+            {errors.passportPhoto && (
+              <p className="text-red-500 text-sm mt-1">{errors.passportPhoto}</p>
+            )}
+          </div>
+
+          {photoPreview && (
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
+              <p className="text-sm font-medium mb-1">Preview</p>
+              <img
+                src={photoPreview}
+                alt="Passport Photo Preview"
+                className="w-32 h-40 object-cover border"
               />
             </div>
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
-              <textarea
-                id="address"
-                name="address"
-                rows={3}
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              ></textarea>
-            </div>
-            <div>
-              <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
-              <input
-                type="text"
-                id="city"
-                name="city"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="pincode" className="block text-sm font-medium text-gray-700">Pincode</label>
-              <input
-                type="text"
-                id="pincode"
-                name="pincode"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Educational Information Section */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold border-b pb-2">Educational Information</h2>
+        
+        {renderEducationSection('tenth', '10th Class', 'School Name')}
+        {renderEducationSection('inter', 'Intermediate', 'College Name')}
+        {renderEducationSection('diploma', 'Diploma', 'Institution Name')}
+        {renderEducationSection('graduation', 'Graduation', 'University Name')}
+      </div>
+
+      {/* Professional Information Section */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold border-b pb-2">Professional Information</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-1">Position Applied For</label>
+            <input
+              type="text"
+              name="position"
+              value={formData.position}
+              onChange={handleChange}
+              className="w-full border rounded px-3 py-2"
+            />
+            {errors.position && (
+              <p className="text-red-500 text-sm mt-1">{errors.position}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Total Experience (years)</label>
+            <input
+              type="number"
+              name="experience"
+              value={formData.experience}
+              onChange={handleChange}
+              min="0"
+              step="0.5"
+              className="w-full border rounded px-3 py-2"
+            />
+            {errors.experience && (
+              <p className="text-red-500 text-sm mt-1">{errors.experience}</p>
+            )}
           </div>
         </div>
+      </div>
 
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-blue-900 border-b pb-2">Educational Information</h3>
-          
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-lg font-medium text-gray-700">10th Details</h4>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="file"
-                  ref={tenthMemoRef}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileUpload(e, 'tenthMemo')}
-                  className="hidden"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => tenthMemoRef.current?.click()}
-                  className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
-                >
-                  Upload Mark Memo
-                </button>
-                {formData.tenthMemo && (
-                  <span className="text-sm text-green-600">✓ {formData.tenthMemo.name}</span>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="tenthBoard" className="block text-sm font-medium text-gray-700">School Name</label>
-                <input
-                  type="text"
-                  id="tenthBoard"
-                  name="tenthBoard"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="tenthYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
-                <input
-                  type="number"
-                  id="tenthYear"
-                  name="tenthYear"
-                  required
-                  min="1990"
-                  max="2025"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="tenthPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
-                <input
-                  type="number"
-                  id="tenthPercentage"
-                  name="tenthPercentage"
-                  required
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-lg font-medium text-gray-700">Intermediate Details</h4>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="file"
-                  ref={interMemoRef}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileUpload(e, 'interMemo')}
-                  className="hidden"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => interMemoRef.current?.click()}
-                  className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
-                >
-                  Upload Mark Memo
-                </button>
-                {formData.interMemo && (
-                  <span className="text-sm text-green-600">✓ {formData.interMemo.name}</span>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="interBoard" className="block text-sm font-medium text-gray-700">College Name</label>
-                <input
-                  type="text"
-                  id="interBoard"
-                  name="interBoard"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="interYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
-                <input
-                  type="number"
-                  id="interYear"
-                  name="interYear"
-                  required
-                  min="1990"
-                  max="2025"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="interPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
-                <input
-                  type="number"
-                  id="interPercentage"
-                  name="interPercentage"
-                  required
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-lg font-medium text-gray-700">Diploma</h4>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="file"
-                  ref={diplomaMemoRef}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileUpload(e, 'diplomaMemo')}
-                  className="hidden"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => diplomaMemoRef.current?.click()}
-                  className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
-                >
-                  Upload Mark Memo
-                </button>
-                {formData.diplomaMemo && (
-                  <span className="text-sm text-green-600">✓ {formData.diplomaMemo.name}</span>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="diplomaBoard" className="block text-sm font-medium text-gray-700">Board/University</label>
-                <input
-                  type="text"
-                  id="diplomaBoard"
-                  name="diplomaBoard"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="diplomaYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
-                <input
-                  type="number"
-                  id="diplomaYear"
-                  name="diplomaYear"
-                  required
-                  min="1990"
-                  max="2025"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="diplomaPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
-                <input
-                  type="number"
-                  id="diplomaPercentage"
-                  name="diplomaPercentage"
-                  required
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="text-lg font-medium text-gray-700">Graduation</h4>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="file"
-                  ref={graduationMemoRef}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileUpload(e, 'graduationMemo')}
-                  className="hidden"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => graduationMemoRef.current?.click()}
-                  className="text-sm bg-gray-100 text-gray-700 py-1 px-3 rounded hover:bg-gray-200 border border-gray-300"
-                >
-                  Upload Mark Memo
-                </button>
-                {formData.graduationMemo && (
-                  <span className="text-sm text-green-600">✓ {formData.graduationMemo.name}</span>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="graduationBoard" className="block text-sm font-medium text-gray-700">Board/University</label>
-                <input
-                  type="text"
-                  id="graduationBoard"
-                  name="graduationBoard"
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="graduationYear" className="block text-sm font-medium text-gray-700">Year of Passing</label>
-                <input
-                  type="number"
-                  id="graduationYear"
-                  name="graduationYear"
-                  required
-                  min="1990"
-                  max="2025"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="graduationPercentage" className="block text-sm font-medium text-gray-700">Percentage/CGPA</label>
-                <input
-                  type="number"
-                  id="graduationPercentage"
-                  name="graduationPercentage"
-                  required
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-blue-900 border-b pb-2">Professional Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="position" className="block text-sm font-medium text-gray-700">Position Applied For</label>
-              <select
-                id="position"
-                name="position"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              >
-                <option value="">Select Position</option>
-                <option value="lascar">Lascar Services</option>
-                <option value="helper">Helper Services</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="experience" className="block text-sm font-medium text-gray-700">Total Experience (Years)</label>
-              <input
-                type="number"
-                id="experience"
-                name="experience"
-                min="0"
-                required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-start">
-            <div className="flex items-center h-5">
-              <input
-                id="declaration"
-                name="declaration"
-                type="checkbox"
-                required
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                onChange={handleChange}
-              />
-            </div>
-            <div className="ml-3 text-sm">
-              <label htmlFor="declaration" className="font-medium text-gray-700">
-                Declaration
-              </label>
-              <p className="text-gray-500">I hereby declare that all the information provided above is true to the best of my knowledge.</p>
-            </div>
-          </div>
-        </div>
-
+      {/* Submit Button */}
+      <div className="pt-6">
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors font-semibold"
+          disabled={isSubmitting}
+          className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
-          Submit Application
+          {isSubmitting ? 'Submitting...' : 'Submit Application'}
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }
 
-export default App;
+export default ApplicationForm;
