@@ -1,18 +1,22 @@
 {
   "compilerOptions": {
-    "target": "es6", // You can update this to "es2017" or later if needed.
+    "target": "es2017", 
     "module": "esnext",
     "strict": true,
-    "jsx": "react",
+    "jsx": "react-jsx", 
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2017", "dom"], // Add "es2017" to support Object.entries.
+    "lib": ["es2017", "dom"],
     "typeRoots": [
       "./node_modules/@types",
       "./src/types"
-    ]
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": [
     "src/**/*"

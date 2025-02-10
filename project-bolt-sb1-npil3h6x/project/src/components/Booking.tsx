@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { validateFile, sendEmailWithAttachments } from '../lib/api';
 
 interface ApplicationFormProps {
   onSubmitSuccess?: () => void;
@@ -82,7 +83,7 @@ const initialFormData: FormData = {
   graduationMemo: null
 };
 
-function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
+export default function BookingForm({ onSubmitSuccess }: ApplicationFormProps) {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -164,22 +165,8 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fileType: keyof FormData) => {
     const file = e.target.files?.[0];
     if (file) {
-      const allowedFormats = ['image/jpeg', 'image/png', 'application/pdf'];
-      const maxSize = fileType === 'passportPhoto' ? 171000 : 500000;
-
-      if (!allowedFormats.includes(file.type)) {
-        setErrors(prev => ({
-          ...prev,
-          [fileType]: 'Invalid file format. Only JPG, PNG, and PDF are allowed.'
-        }));
-        return;
-      }
-
-      if (file.size > maxSize) {
-        setErrors(prev => ({
-          ...prev,
-          [fileType]: `File must be smaller than ${maxSize / 1000}KB`
-        }));
+      const isPassportPhoto = fileType === 'passportPhoto';
+      if (!validateFile(file, isPassportPhoto)) {
         return;
       }
 
@@ -188,7 +175,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
         [fileType]: file
       }));
 
-      if (fileType === 'passportPhoto') {
+      if (isPassportPhoto) {
         const reader = new FileReader();
         reader.onloadend = () => {
           setPhotoPreview(reader.result as string);
@@ -218,70 +205,6 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     }));
   };
 
-  const convertFileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
-
-  const generateEmailBody = (data: FormData): string => {
-    return `
-      Job Application Details:
-      
-      Personal Information:
-      Name: ${data.firstName} ${data.lastName}
-      Father's Name: ${data.fatherName}
-      Date of Birth: ${data.dateOfBirth}
-      Gender: ${data.gender}
-      Category: ${data.category}
-      Physically Handicapped: ${data.handicapped}
-      Aadhar Number: ${data.adharnumber}
-      
-      Contact Information:
-      Email: ${data.email}
-      Phone: ${data.phone}
-      Address: ${data.address}
-      City: ${data.city}
-      Pincode: ${data.pincode}
-      
-      Educational Information:
-      ${data.tenthApplicable === 'yes' ? `
-      10th Details:
-      School: ${data.tenthBoard}
-      Year: ${data.tenthYear}
-      Percentage: ${data.tenthPercentage}
-      ` : '10th: Not Applicable'}
-      
-      ${data.interApplicable === 'yes' ? `
-      Intermediate Details:
-      College: ${data.interBoard}
-      Year: ${data.interYear}
-      Percentage: ${data.interPercentage}
-      ` : 'Intermediate: Not Applicable'}
-      
-      ${data.diplomaApplicable === 'yes' ? `
-      Diploma Details:
-      Board: ${data.diplomaBoard}
-      Year: ${data.diplomaYear}
-      Percentage: ${data.diplomaPercentage}
-      ` : 'Diploma: Not Applicable'}
-      
-      ${data.graduationApplicable === 'yes' ? `
-      Graduation Details:
-      University: ${data.graduationBoard}
-      Year: ${data.graduationYear}
-      Percentage: ${data.graduationPercentage}
-      ` : 'Graduation: Not Applicable'}
-      
-      Professional Information:
-      Position Applied For: ${data.position}
-      Total Experience: ${data.experience} years
-    `;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -293,34 +216,21 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     setIsSubmitting(true);
 
     try {
-      const fileAttachments = [];
+      const files: { [key: string]: File } = {};
       
       if (formData.passportPhoto) {
-        const photoBase64 = await convertFileToBase64(formData.passportPhoto);
-        fileAttachments.push({
-          name: 'Passport Photo',
-          data: photoBase64
-        });
+        files.passportPhoto = formData.passportPhoto;
       }
 
       const educationSections = ['tenth', 'inter', 'diploma', 'graduation'];
       for (const section of educationSections) {
         if (formData[`${section}Applicable` as keyof FormData] === 'yes' && 
             formData[`${section}Memo` as keyof FormData]) {
-          const memoBase64 = await convertFileToBase64(formData[`${section}Memo` as keyof FormData] as File);
-          fileAttachments.push({
-            name: `${section.charAt(0).toUpperCase() + section.slice(1)} Memo`,
-            data: memoBase64
-          });
+          files[`${section}Memo`] = formData[`${section}Memo` as keyof FormData] as File;
         }
       }
 
-      const emailBody = generateEmailBody(formData);
-      const encodedBody = encodeURIComponent(emailBody);
-      const mailtoLink = `mailto:bhemsociety@gmail.com?subject=New Job Application - ${formData.firstName} ${formData.lastName}&body=${encodedBody}`;
-
-      window.location.href = mailtoLink;
-      
+      await sendEmailWithAttachments(formData, files);
       onSubmitSuccess?.();
       alert('Application submitted successfully! Your email client will open to send the application.');
     } catch (error) {
@@ -412,13 +322,11 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
                 Upload Memo
               </label>
               <input
-  type="file"
-  onChange={(e) => handleFileUpload(e, `${section}Memo` as keyof FormData)}
-  accept=".pdf,.jpg,.jpeg,.png"
-  className="w-full"
-/>
-
-
+                type="file"
+                onChange={(e) => handleFileUpload(e, `${section}Memo` as keyof FormData)}
+                accept=".pdf,.jpg,.jpeg,.png"
+                className="w-full"
+              />
               {errors[`${section}Memo` as keyof FormData] && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors[`${section}Memo` as keyof FormData]}
@@ -691,13 +599,16 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium mb-1">Position Applied For</label>
-            <input
-              type="text"
+            <select
               name="position"
               value={formData.position}
               onChange={handleChange}
               className="w-full border rounded px-3 py-2"
-            />
+            >
+              <option value="">Select Position</option>
+              <option value="lascar">Lascar Services</option>
+              <option value="helper">Helper Services</option>
+            </select>
             {errors.position && (
               <p className="text-red-500 text-sm mt-1">{errors.position}</p>
             )}
@@ -734,5 +645,3 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     </form>
   );
 }
-
-export default ApplicationForm;
