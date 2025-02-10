@@ -13,19 +13,28 @@ export const FILE_CONSTRAINTS = {
     EMAIL_FAILED: 'Failed to send email. Please try again.',
   };
   
+  // Show error message in the UI
+  const showErrorMessage = (message: string): void => {
+    const errorElement = document.getElementById('error-message');
+    if (errorElement) {
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+    }
+  };
+  
   // Validation functions
   export const validateFile = (file: File, isPassportPhoto: boolean = false): boolean => {
     if (!FILE_CONSTRAINTS.ALLOWED_TYPES.includes(file.type)) {
-      alert(ERROR_MESSAGES.INVALID_FILE_TYPE);
+      showErrorMessage(ERROR_MESSAGES.INVALID_FILE_TYPE);
       return false;
     }
-    
+  
     const maxSize = isPassportPhoto ? FILE_CONSTRAINTS.PASSPORT_PHOTO_SIZE : FILE_CONSTRAINTS.DOCUMENT_SIZE;
     if (file.size > maxSize) {
-      alert(isPassportPhoto ? ERROR_MESSAGES.PASSPORT_PHOTO_TOO_LARGE : ERROR_MESSAGES.DOCUMENT_TOO_LARGE);
+      showErrorMessage(isPassportPhoto ? ERROR_MESSAGES.PASSPORT_PHOTO_TOO_LARGE : ERROR_MESSAGES.DOCUMENT_TOO_LARGE);
       return false;
     }
-    
+  
     return true;
   };
   
@@ -39,186 +48,111 @@ export const FILE_CONSTRAINTS = {
     });
   };
   
-  // Generate printable version
-  export const generatePrintableVersion = async (formData: any, files: { [key: string]: File }) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Please allow pop-ups to print the application');
-      return;
-    }
-  
-    let content = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Job Application - ${formData.firstName} ${formData.lastName}</title>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
-          h1 { color: #1e40af; text-align: center; }
-          .section { margin-bottom: 20px; }
-          .section-title { color: #1e40af; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-          .field { margin: 10px 0; }
-          .label { font-weight: bold; }
-          img { max-width: 200px; margin: 10px 0; }
-          @media print {
-            body { padding: 0; }
-            button { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <h1>Job Application Form</h1>
-        
-        <div class="section">
-          <h2 class="section-title">Personal Information</h2>
-          <div class="field"><span class="label">Name:</span> ${formData.firstName} ${formData.lastName}</div>
-          <div class="field"><span class="label">Father's Name:</span> ${formData.fatherName}</div>
-          <div class="field"><span class="label">Date of Birth:</span> ${formData.dateOfBirth}</div>
-          <div class="field"><span class="label">Gender:</span> ${formData.gender}</div>
-          <div class="field"><span class="label">Category:</span> ${formData.category}</div>
-          <div class="field"><span class="label">Physically Handicapped:</span> ${formData.handicapped}</div>
-          <div class="field"><span class="label">Aadhar Number:</span> ${formData.adharnumber}</div>
-        </div>
-  
-        <div class="section">
-          <h2 class="section-title">Contact Information</h2>
-          <div class="field"><span class="label">Email:</span> ${formData.email}</div>
-          <div class="field"><span class="label">Phone:</span> ${formData.phone}</div>
-          <div class="field"><span class="label">Address:</span> ${formData.address}</div>
-          <div class="field"><span class="label">City:</span> ${formData.city}</div>
-          <div class="field"><span class="label">Pincode:</span> ${formData.pincode}</div>
-        </div>
-  
-        <div class="section">
-          <h2 class="section-title">Educational Information</h2>
-    `;
-  
-    // Add education sections
-    const educationSections = [
-      { key: 'tenth', title: '10th Class' },
-      { key: 'inter', title: 'Intermediate' },
-      { key: 'diploma', title: 'Diploma' },
-      { key: 'graduation', title: 'Graduation' }
+  // Validate form data before sending the email
+  export const validateFormData = (formData: any): boolean => {
+    const requiredFields = [
+      'firstName', 'lastName', 'email', 'phone', 'position', 
+      'adharnumber', 'address', 'city', 'pincode'
     ];
   
-    for (const section of educationSections) {
-      if (formData[`${section.key}Applicable`] === 'yes') {
-        content += `
-          <div class="field">
-            <h3>${section.title}</h3>
-            <div><span class="label">Institution:</span> ${formData[`${section.key}Board`]}</div>
-            <div><span class="label">Year:</span> ${formData[`${section.key}Year`]}</div>
-            <div><span class="label">Percentage:</span> ${formData[`${section.key}Percentage`]}</div>
-          </div>
-        `;
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        showErrorMessage(`Please fill out the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+        return false;
       }
     }
   
-    content += `
-        </div>
-  
-        <div class="section">
-          <h2 class="section-title">Professional Information</h2>
-          <div class="field"><span class="label">Position Applied For:</span> ${formData.position}</div>
-          <div class="field"><span class="label">Total Experience:</span> ${formData.experience} years</div>
-        </div>
-  
-        <div class="section">
-          <h2 class="section-title">Attachments</h2>
-    `;
-  
-    // Add images/files
-    for (const [key, file] of Object.entries(files)) {
-      const base64Data = await fileToBase64(file);
-      content += `
-        <div class="field">
-          <div class="label">${key === 'passportPhoto' ? 'Passport Photo' : key}:</div>
-          <img src="${base64Data}" alt="${key}" />
-        </div>
-      `;
-    }
-  
-    content += `
-        </div>
-  
-        <button onclick="window.print()" style="margin: 20px 0; padding: 10px 20px; background: #1e40af; color: white; border: none; border-radius: 5px; cursor: pointer;">
-          Print Application
-        </button>
-      </body>
-      </html>
-    `;
-  
-    printWindow.document.write(content);
-    printWindow.document.close();
+    return true;
   };
   
   // Send email with attachments
   export const sendEmailWithAttachments = async (formData: any, files: { [key: string]: File }) => {
     try {
-      // Generate email body
-      const emailBody = `
-  Job Application Details
+      // Validate form data first
+      if (!validateFormData(formData)) return false;
   
-  Personal Information:
-  -------------------
-  • Name: ${formData.firstName} ${formData.lastName}
-  • Father's Name: ${formData.fatherName}
-  • Date of Birth: ${formData.dateOfBirth}
-  • Gender: ${formData.gender}
-  • Category: ${formData.category}
-  • Physically Handicapped: ${formData.handicapped}
-  • Aadhar Number: ${formData.adharnumber}
+      const emailjs = (await import('@emailjs/browser')).default;
+      emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your EmailJS public key
   
-  Contact Information:
-  ------------------
-  • Email: ${formData.email}
-  • Phone: ${formData.phone}
-  • Address: ${formData.address}
-  • City: ${formData.city}
-  • Pincode: ${formData.pincode}
+      // Convert files to base64
+      const fileAttachments: { [key: string]: string } = {};
+      for (const [key, file] of Object.entries(files)) {
+        if (!validateFile(file)) return false; // Check each file before converting
+        fileAttachments[key] = await fileToBase64(file);
+      }
   
-  Educational Information:
-  ---------------------
-  10th Details: ${formData.tenthApplicable === 'no' ? 'Not Applicable' : `
-  • School: ${formData.tenthBoard}
-  • Year: ${formData.tenthYear}
-  • Percentage: ${formData.tenthPercentage}%`}
+      // Prepare template data
+      const templateParams = {
+        to_email: 'bhemsociety@gmail.com',
+        from_name: `${formData.firstName} ${formData.lastName}`,
+        subject: `Job Application - ${formData.firstName} ${formData.lastName}`,
+        message: `
+          Personal Information:
+          -------------------
+          • Name: ${formData.firstName} ${formData.lastName}
+          • Father's Name: ${formData.fatherName}
+          • Date of Birth: ${formData.dateOfBirth}
+          • Gender: ${formData.gender}
+          • Category: ${formData.category}
+          • Physically Handicapped: ${formData.handicapped}
+          • Aadhar Number: ${formData.adharnumber}
   
-  Intermediate Details: ${formData.interApplicable === 'no' ? 'Not Applicable' : `
-  • College: ${formData.interBoard}
-  • Year: ${formData.interYear}
-  • Percentage: ${formData.interPercentage}%`}
+          Contact Information:
+          ------------------
+          • Email: ${formData.email}
+          • Phone: ${formData.phone}
+          • Address: ${formData.address}
+          • City: ${formData.city}
+          • Pincode: ${formData.pincode}
   
-  Diploma Details: ${formData.diplomaApplicable === 'no' ? 'Not Applicable' : `
-  • Board: ${formData.diplomaBoard}
-  • Year: ${formData.diplomaYear}
-  • Percentage: ${formData.diplomaPercentage}%`}
+          Educational Information:
+          ---------------------
+          10th Details: ${formData.tenthApplicable === 'no' ? 'Not Applicable' : `
+          • School: ${formData.tenthBoard}
+          • Year: ${formData.tenthYear}
+          • Percentage: ${formData.tenthPercentage}%`}
+          
+          Intermediate Details: ${formData.interApplicable === 'no' ? 'Not Applicable' : `
+          • College: ${formData.interBoard}
+          • Year: ${formData.interYear}
+          • Percentage: ${formData.interPercentage}%`}
+          
+          Diploma Details: ${formData.diplomaApplicable === 'no' ? 'Not Applicable' : `
+          • Board: ${formData.diplomaBoard}
+          • Year: ${formData.diplomaYear}
+          • Percentage: ${formData.diplomaPercentage}%`}
+          
+          Graduation Details: ${formData.graduationApplicable === 'no' ? 'Not Applicable' : `
+          • University: ${formData.graduationBoard}
+          • Year: ${formData.graduationYear}
+          • Percentage: ${formData.graduationPercentage}%`}
+          
+          Professional Information:
+          ----------------------
+          • Position Applied For: ${formData.position}
+          • Total Experience: ${formData.experience} years`,
+        ...fileAttachments
+      };
   
-  Graduation Details: ${formData.graduationApplicable === 'no' ? 'Not Applicable' : `
-  • University: ${formData.graduationBoard}
-  • Year: ${formData.graduationYear}
-  • Percentage: ${formData.graduationPercentage}%`}
+      // Send email using EmailJS
+      await emailjs.send(
+        "YOUR_SERVICE_ID", // Replace with your EmailJS service ID
+        "YOUR_TEMPLATE_ID", // Replace with your EmailJS template ID
+        templateParams
+      );
   
-  Professional Information:
-  ----------------------
-  • Position Applied For: ${formData.position}
-  • Total Experience: ${formData.experience} years
-      `;
-  
-      // Create mailto link
-      const subject = encodeURIComponent(`Job Application - ${formData.firstName} ${formData.lastName}`);
-      const body = encodeURIComponent(emailBody);
-      const mailtoLink = `mailto:bhemsociety@gmail.com?subject=${subject}&body=${body}`;
-  
-      // Open email client
-      window.location.href = mailtoLink;
-  
-      // Generate printable version
-      await generatePrintableVersion(formData, files);
+      // Success message can be displayed here
+      const successMessageElement = document.getElementById('success-message');
+      if (successMessageElement) {
+        successMessageElement.textContent = 'Your application has been successfully submitted!';
+        successMessageElement.style.display = 'block';
+      }
   
       return true;
     } catch (error) {
       console.error('Error sending email:', error);
-      throw new Error(ERROR_MESSAGES.EMAIL_FAILED);
+      showErrorMessage(ERROR_MESSAGES.EMAIL_FAILED);
+      return false;
     }
   };
+  
