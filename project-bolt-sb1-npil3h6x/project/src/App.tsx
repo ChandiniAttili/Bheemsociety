@@ -1,13 +1,22 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Header from "./components/Header";
 import AboutSection from "./components/AboutSection";
 import HeroSection from "./components/HeroSection";
 import ServicesSection from "./components/ServicesSection";
 import JobNotifications from "./components/JobNotifications";
 import ApplicationForm from "./components/Booking";
+import { sendEmailWithAttachments } from "./lib/api"; // Importing the function for sending emails
 
 export default function App() {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [files, setFiles] = useState<{ [key: string]: File }>({});
 
   // Handle the Apply button click to show the application form
   const onApplyClick = () => {
@@ -37,6 +46,41 @@ export default function App() {
 
     return () => clearInterval(intervalId); // Cleanup the interval on unmount
   }, []);
+
+  // Handle form field changes
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Handle file change for file inputs
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles({ ...files, [e.target.name]: e.target.files[0] });
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const success = await sendEmailWithAttachments(formData, files);
+      if (success) {
+        alert("Email sent successfully!");
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          message: "",
+        });
+        setFiles({});
+      }
+    } catch (error) {
+      alert("Failed to send email. Please try again.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -196,10 +240,10 @@ export default function App() {
                 <p className="mb-4">
                   <strong>Email:</strong>{" "}
                   <a
-                    href="mailto:bhemsociety@gmail.com"
+                    href="mailto:bheemsociety@gmail.com"
                     className="text-blue-600 hover:underline"
                   >
-                    bhemsociety@gmail.com
+                    bheemsociety@gmail.com
                   </a>
                 </p>
               </address>
@@ -207,65 +251,6 @@ export default function App() {
           </div>
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="container mx-auto px-4">
-          <nav aria-label="Footer Navigation" className="mb-8">
-            <ul className="flex flex-wrap justify-center gap-6">
-              <li>
-                <a
-                  href="#about"
-                  className="hover:text-blue-300 transition-colors"
-                >
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#services"
-                  className="hover:text-blue-300 transition-colors"
-                >
-                  Our Services
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#jobs"
-                  className="hover:text-blue-300 transition-colors"
-                >
-                  Career Opportunities
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#contact"
-                  className="hover:text-blue-300 transition-colors"
-                >
-                  Contact Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="tel:+919441666624"
-                  className="hover:text-blue-300 transition-colors"
-                >
-                  Call Now: +91 9392462636
-                </a>
-              </li>
-            </ul>
-          </nav>
-          <div className="text-center">
-            <p className="mb-2">
-              &copy; {new Date().getFullYear()} Bheem Society. All rights
-              reserved.
-            </p>
-            <p className="text-sm text-gray-400">
-              Professional Security Services & Facility Management in Hyderabad
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
