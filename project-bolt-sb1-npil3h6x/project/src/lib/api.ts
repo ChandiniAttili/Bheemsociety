@@ -37,7 +37,7 @@ const compressImage = async (file: File): Promise<File> => {
           return;
         }
 
-        // Calculate new dimensions while maintaining aspect ratio
+        // Maintain aspect ratio
         let width = img.width;
         let height = img.height;
         const maxDimension = 800;
@@ -74,13 +74,15 @@ const compressImage = async (file: File): Promise<File> => {
   });
 };
 
+// EmailChunk interface with index signature
 interface EmailChunk {
   to_email: string;
   from_name: string;
   subject: string;
   message: string;
+  image_url?: string;
   files: Record<string, File>;
-  [key: string]: unknown;  // Added index signature here
+  [key: string]: unknown;  // <-- Fix: Added index signature
 }
 
 // Email sending function
@@ -132,7 +134,7 @@ export const sendEmailWithAttachments = async (formData: any, files: { [key: str
       await emailjs.send(
         "service_frccd2d",
         "template_6z4229f",
-        chunk
+        chunk as Record<string, unknown>  // <-- Fix: Ensure proper type
       );
     }
 
@@ -146,59 +148,53 @@ export const sendEmailWithAttachments = async (formData: any, files: { [key: str
 // Helper function to generate email body
 const generateEmailBody = (data: any): string => {
   return `
-Job Application Details:
+<h2 style="color: #007bff;">📩 Job Application</h2>
 
-Personal Information:
--------------------
-Name: ${data.firstName} ${data.lastName}
-Father's Name: ${data.fatherName}
-Date of Birth: ${data.dateOfBirth}
-Gender: ${data.gender}
-Category: ${data.category}
-Physically Handicapped: ${data.handicapped}
-Aadhar Number: ${data.adharnumber}
+<p><strong>Name:</strong> ${data.firstName} ${data.lastName}</p>
+<p><strong>Father's Name:</strong> ${data.fatherName}</p>
+<p><strong>Date of Birth:</strong> ${data.dateOfBirth}</p>
+<p><strong>Gender:</strong> ${data.gender}</p>
+<p><strong>Category:</strong> ${data.category}</p>
+<p><strong>Physically Handicapped:</strong> ${data.handicapped}</p>
+<p><strong>Aadhar Number:</strong> ${data.adharnumber}</p>
 
-Contact Information:
-------------------
-Email: ${data.email}
-Phone: ${data.phone}
-Address: ${data.address}
-City: ${data.city}
-Pincode: ${data.pincode}
+<h3>📞 Contact Information</h3>
+<p><strong>Email:</strong> ${data.email}</p>
+<p><strong>Phone:</strong> ${data.phone}</p>
+<p><strong>Address:</strong> ${data.address}, ${data.city}, ${data.pincode}</p>
 
-Educational Information:
----------------------
-10th Details:
+<h3>🎓 Educational Information</h3>
+
 ${data.tenthApplicable === 'yes' ? `
-School: ${data.tenthBoard}
-Year: ${data.tenthYear}
-Percentage: ${data.tenthPercentage}
-` : 'Not Applicable'}
+<h4>10th Details</h4>
+<p><strong>School:</strong> ${data.tenthBoard}</p>
+<p><strong>Year:</strong> ${data.tenthYear}</p>
+<p><strong>Percentage:</strong> ${data.tenthPercentage}</p>` : ''}
 
-Intermediate Details:
 ${data.interApplicable === 'yes' ? `
-College: ${data.interBoard}
-Year: ${data.interYear}
-Percentage: ${data.interPercentage}
-` : 'Not Applicable'}
+<h4>Intermediate Details</h4>
+<p><strong>College:</strong> ${data.interBoard}</p>
+<p><strong>Year:</strong> ${data.interYear}</p>
+<p><strong>Percentage:</strong> ${data.interPercentage}</p>` : ''}
 
-Diploma Details:
 ${data.diplomaApplicable === 'yes' ? `
-Institution: ${data.diplomaBoard}
-Year: ${data.diplomaYear}
-Percentage: ${data.diplomaPercentage}
-` : 'Not Applicable'}
+<h4>Diploma Details</h4>
+<p><strong>Institution:</strong> ${data.diplomaBoard}</p>
+<p><strong>Year:</strong> ${data.diplomaYear}</p>
+<p><strong>Percentage:</strong> ${data.diplomaPercentage}</p>` : ''}
 
-Graduation Details:
 ${data.graduationApplicable === 'yes' ? `
-University: ${data.graduationBoard}
-Year: ${data.graduationYear}
-Percentage: ${data.graduationPercentage}
-` : 'Not Applicable'}
+<h4>Graduation Details</h4>
+<p><strong>University:</strong> ${data.graduationBoard}</p>
+<p><strong>Year:</strong> ${data.graduationYear}</p>
+<p><strong>Percentage:</strong> ${data.graduationPercentage}</p>` : ''}
 
-Professional Information:
-----------------------
-Position Applied For: ${data.position}
-Total Experience: ${data.experience} years
+<h3>💼 Professional Information</h3>
+<p><strong>Position Applied For:</strong> ${data.position}</p>
+<p><strong>Total Experience:</strong> ${data.experience} years</p>
+
+<p style="margin-top: 20px; font-size: 14px; color: #888;">
+  Sent via Bheem Society Job Portal
+</p>
 `;
 };
