@@ -3,25 +3,167 @@ import emailjs from '@emailjs/browser';
 // Initialize EmailJS
 emailjs.init("rZQbUGME2D4X6Re5D");
 
-// File validation function
-export const validateFile = (file: File, isPassportPhoto: boolean = false): boolean => {
-  const allowedFormats = ['image/jpeg', 'image/png', 'application/pdf'];
-  const maxSize = isPassportPhoto ? 171000 : 500000; // 171KB for passport photo, 500KB for other files
+// Define FormData interface
+interface FormData {
+  firstName: string;
+  lastName: string;
+  fatherName: string;
+  dateOfBirth: string;
+  gender: string;
+  category: string;
+  handicapped: string;
+  adharnumber: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  pincode: string;
+  position: string;
+  experience: string;
+  passportPhoto: File | null;
+  tenthApplicable: string;
+  tenthBoard: string;
+  tenthYear: string;
+  tenthPercentage: string;
+  tenthMemo: File | null;
+  interApplicable: string;
+  interBoard: string;
+  interYear: string;
+  interPercentage: string;
+  interMemo: File | null;
+  diplomaApplicable: string;
+  diplomaBoard: string;
+  diplomaYear: string;
+  diplomaPercentage: string;
+  diplomaMemo: File | null;
+  graduationApplicable: string;
+  graduationBoard: string;
+  graduationYear: string;
+  graduationPercentage: string;
+  graduationMemo: File | null;
+}
 
-  if (!allowedFormats.includes(file.type)) {
-    alert('Invalid file format. Only JPG, PNG, and PDF are allowed.');
+// Prevents duplicate submissions
+let isSubmitting = false;
+
+// Export the validateFile function
+export const validateFile = (file: File, isPassportPhoto: boolean): boolean => {
+  const allowedExtensions = ["image/jpeg", "image/png"];
+  
+  // Check if file type is allowed
+  if (!allowedExtensions.includes(file.type)) {
+    console.error("Invalid file type");
     return false;
   }
 
-  if (file.size > maxSize) {
-    alert(`File must be smaller than ${maxSize / 1000}KB`);
+  // Check if the file is a passport photo and if it exceeds the size limit
+  if (isPassportPhoto && file.size > 1000000) { // Example: 1MB size limit for passport photo
+    console.error("Passport photo is too large");
     return false;
   }
 
   return true;
 };
 
-// Function to compress image file
+// Function to handle file upload with proper type checking
+export const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fileType: keyof FormData) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    const isPassportPhoto = fileType === 'passportPhoto';
+    
+    // Validate file type and size
+    if (!validateFile(file, isPassportPhoto)) {
+      return;
+    }
+
+    // Handle further logic for successful validation
+    console.log("File is valid", file);
+  }
+};
+
+// Update return type to Promise<boolean>
+export const sendEmailWithAttachments = async (formData: FormData, files: { [key: string]: File }): Promise<boolean> => {
+  if (isSubmitting) {
+    console.log("Form already submitting...");
+    return false;
+  }
+
+  isSubmitting = true;
+
+  try {
+    const emailBody = generateEmailBody(formData);
+
+    const compressedFiles: Record<string, File> = {};
+    for (const [key, file] of Object.entries(files)) {
+      if (file.type.startsWith('image/')) {
+        compressedFiles[key] = await compressImage(file);
+      } else {
+        compressedFiles[key] = file;
+      }
+    }
+
+    await emailjs.send("service_frccd2d", "template_6z4229f", {
+      to_email: "bhemsociety@gmail.com",
+      from_name: `${formData.firstName} ${formData.lastName}`,
+      subject: `Job Application - ${formData.firstName} ${formData.lastName}`,
+      message: emailBody,
+      attachments: compressedFiles,
+    });
+
+    console.log("Application sent successfully!");
+    return true;
+  } catch (error) {
+    console.error("Error sending application:", error);
+    return false;
+  } finally {
+    isSubmitting = false;
+  }
+};
+
+// Updated to use FormData type
+const generateEmailBody = (data: FormData): string => {
+  return `
+  Job Application Details:
+
+  Personal Information:
+  -------------------
+  Name: ${data.firstName || "Not Provided"} ${data.lastName || ""}
+  Father's Name: ${data.fatherName || "Not Provided"}
+  Date of Birth: ${data.dateOfBirth || "Not Provided"}
+  Gender: ${data.gender || "Not Provided"}
+  Category: ${data.category || "Not Provided"}
+  Physically Handicapped: ${data.handicapped || "Not Provided"}
+  Aadhar Number: ${data.adharnumber || "Not Provided"}
+
+  Contact Information:
+  ------------------
+  Email: ${data.email || "Not Provided"}
+  Phone: ${data.phone || "Not Provided"}
+  Address: ${data.address || "Not Provided"}
+  City: ${data.city || "Not Provided"}
+  Pincode: ${data.pincode || "Not Provided"}
+
+  Educational Information:
+  ---------------------
+  10th Details:
+  ${data.tenthBoard ? `Board: ${data.tenthBoard}, Year: ${data.tenthYear}, Percentage: ${data.tenthPercentage}` : "Not Provided"}
+
+  Intermediate Details:
+  ${data.interBoard ? `Board: ${data.interBoard}, Year: ${data.interYear}, Percentage: ${data.interPercentage}` : "Not Provided"}
+
+  Diploma Details:
+  ${data.diplomaBoard ? `Institution: ${data.diplomaBoard}, Year: ${data.diplomaYear}, Percentage: ${data.diplomaPercentage}` : "Not Provided"}
+
+  Graduation Details:
+  ${data.graduationBoard ? `University: ${data.graduationBoard}, Year: ${data.graduationYear}, Percentage: ${data.graduationPercentage}` : "Not Provided"}
+
+  Professional Information:
+  ----------------------
+  Position Applied For: ${data.position || "Not Provided"}
+  Total Experience: ${data.experience || "Not Provided"} years
+  `.trim();
+};
+
 const compressImage = async (file: File): Promise<File> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -30,18 +172,16 @@ const compressImage = async (file: File): Promise<File> => {
       const img = new Image();
       img.src = event.target?.result as string;
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
         if (!ctx) {
-          reject(new Error('Could not get canvas context'));
+          reject(new Error("Could not get canvas context"));
           return;
         }
 
-        // Resize while maintaining aspect ratio
         let width = img.width;
         let height = img.height;
         const maxDimension = 800;
-
         if (width > height && width > maxDimension) {
           height = (height * maxDimension) / width;
           width = maxDimension;
@@ -57,15 +197,15 @@ const compressImage = async (file: File): Promise<File> => {
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              reject(new Error('Could not compress image'));
+              reject(new Error("Could not compress image"));
               return;
             }
             resolve(new File([blob], file.name, {
-              type: 'image/jpeg',
+              type: "image/jpeg",
               lastModified: Date.now(),
             }));
           },
-          'image/jpeg',
+          "image/jpeg",
           0.7
         );
       };
@@ -74,131 +214,5 @@ const compressImage = async (file: File): Promise<File> => {
   });
 };
 
-interface EmailChunk {
-  to_email: string;
-  from_name: string;
-  subject: string;
-  message: string;
-  files: Record<string, File>;
-  [key: string]: unknown;
-}
+export type { FormData };
 
-// Function to send email with attachments
-export const sendEmailWithAttachments = async (formData: any, files: { [key: string]: File }) => {
-  try {
-    // Compress images before sending
-    const compressedFiles: Record<string, File> = {};
-    for (const [key, file] of Object.entries(files)) {
-      if (file.type.startsWith('image/')) {
-        compressedFiles[key] = await compressImage(file);
-      } else {
-        compressedFiles[key] = file;
-      }
-    }
-
-    // Split the data into chunks if needed
-    const chunks: EmailChunk[] = [];
-    let currentChunk: EmailChunk = {
-      to_email: 'bheemsociety@gmail.com',
-      from_name: `${formData.firstName} ${formData.lastName}`,
-      subject: `Job Application - ${formData.firstName} ${formData.lastName}`,
-      message: generateEmailBody(formData),
-      files: {}
-    };
-
-    let currentSize = new Blob([currentChunk.message]).size;
-    const maxSize = 45000; // Keeping a buffer below 50KB
-
-    for (const [key, file] of Object.entries(compressedFiles)) {
-      const fileSize = file.size;
-      if (currentSize + fileSize > maxSize) {
-        chunks.push(currentChunk);
-        currentChunk = {
-          to_email: 'bheemsociety@gmail.com',
-          from_name: `${formData.firstName} ${formData.lastName}`,
-          subject: `Job Application (Continued) - ${formData.firstName} ${formData.lastName}`,
-          message: 'Continued from previous email...',
-          files: {}
-        };
-        currentSize = new Blob([currentChunk.message]).size;
-      }
-      currentChunk.files[key] = file;
-      currentSize += fileSize;
-    }
-    chunks.push(currentChunk);
-
-    // Send each chunk
-    for (const chunk of chunks) {
-      await emailjs.send(
-        "service_frccd2d",
-        "template_6z4229f",
-        chunk
-      );
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error sending email:', error);
-    throw error;
-  }
-};
-
-// Helper function to generate email body
-const generateEmailBody = (data: any): string => {
-  return `
-Job Application Details:
-
-Personal Information:
--------------------
-Name: ${data.firstName || ""}
-Father's Name: ${data.fatherName || ""}
-Date of Birth: ${data.dateOfBirth || ""}
-Gender: ${data.gender || ""}
-Category: ${data.category || ""}
-Physically Handicapped: ${data.handicapped || ""}
-Aadhar Number: ${data.adharnumber || ""}
-
-Contact Information:
-------------------
-Email: ${data.email || ""}
-Phone: ${data.phone || ""}
-Address: ${data.address || ""}
-City: ${data.city || ""}
-Pincode: ${data.pincode || ""}
-
-Educational Information:
----------------------
-10th Details:
-${data.tenthApplicable === 'yes' ? `
-School: ${data.tenthBoard || ""}
-Year: ${data.tenthYear || ""}
-Percentage: ${data.tenthPercentage || ""}
-` : 'Not Applicable'}
-
-Intermediate Details:
-${data.interApplicable === 'yes' ? `
-College: ${data.interBoard || ""}
-Year: ${data.interYear || ""}
-Percentage: ${data.interPercentage || ""}
-` : 'Not Applicable'}
-
-Diploma Details:
-${data.diplomaApplicable === 'yes' ? `
-Institution: ${data.diplomaBoard || ""}
-Year: ${data.diplomaYear || ""}
-Percentage: ${data.diplomaPercentage || ""}
-` : 'Not Applicable'}
-
-Graduation Details:
-${data.graduationApplicable === 'yes' ? `
-University: ${data.graduationBoard || ""}
-Year: ${data.graduationYear || ""}
-Percentage: ${data.graduationPercentage || ""}
-` : 'Not Applicable'}
-
-Professional Information:
-----------------------
-Position Applied For: ${data.position || ""}
-Total Experience: ${data.experience || ""} years
-  `.trim();
-};
