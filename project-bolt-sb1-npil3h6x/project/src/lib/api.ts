@@ -48,17 +48,18 @@ let isSubmitting = false;
 
 // Export the validateFile function
 export const validateFile = (file: File, isPassportPhoto: boolean): boolean => {
-  const allowedExtensions = ["image/jpeg", "image/png"];
+  const allowedExtensions = ["image/jpeg", "image/png", "application/pdf"];
   
   // Check if file type is allowed
   if (!allowedExtensions.includes(file.type)) {
-    console.error("Invalid file type");
+    alert("Invalid file type. Only JPG, PNG, and PDF files are allowed.");
     return false;
   }
 
-  // Check if the file is a passport photo and if it exceeds the size limit
-  if (isPassportPhoto && file.size > 1000000) { // Example: 1MB size limit for passport photo
-    console.error("Passport photo is too large");
+  // Check file size
+  const maxSize = isPassportPhoto ? 171000 : 500000; // 171KB for passport photo, 500KB for other files
+  if (file.size > maxSize) {
+    alert(`File size must be less than ${maxSize / 1000}KB`);
     return false;
   }
 
@@ -73,12 +74,22 @@ export const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fileTyp
     
     // Validate file type and size
     if (!validateFile(file, isPassportPhoto)) {
-      return;
+      return null;
     }
 
-    // Handle further logic for successful validation
-    console.log("File is valid", file);
+    return file;
   }
+  return null;
+};
+
+// Convert file to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
 };
 
 // Update return type to Promise<boolean>
@@ -91,77 +102,101 @@ export const sendEmailWithAttachments = async (formData: FormData, files: { [key
   isSubmitting = true;
 
   try {
-    const emailBody = generateEmailBody(formData);
-
-    const compressedFiles: Record<string, File> = {};
+    // Convert files to base64
+    const fileAttachments: { [key: string]: string } = {};
     for (const [key, file] of Object.entries(files)) {
-      if (file.type.startsWith('image/')) {
-        compressedFiles[key] = await compressImage(file);
-      } else {
-        compressedFiles[key] = file;
+      if (file) {
+        const compressedFile = file.type.startsWith('image/') 
+          ? await compressImage(file)
+          : file;
+        fileAttachments[key] = await fileToBase64(compressedFile);
       }
     }
 
-    await emailjs.send("service_frccd2d", "template_6z4229f", {
+    // Split into chunks if needed
+    const chunks = [];
+    let currentChunk = {
       to_email: "bhemsociety@gmail.com",
       from_name: `${formData.firstName} ${formData.lastName}`,
       subject: `Job Application - ${formData.firstName} ${formData.lastName}`,
-      message: emailBody,
-      attachments: compressedFiles,
-    });
+      message: generateEmailBody(formData),
+      ...fileAttachments
+    };
+
+    // Send email with all details and attachments
+    await emailjs.send(
+      "service_frccd2d",
+      "template_6z4229f",
+      currentChunk
+    );
 
     console.log("Application sent successfully!");
     return true;
   } catch (error) {
     console.error("Error sending application:", error);
-    return false;
+    throw error;
   } finally {
     isSubmitting = false;
   }
 };
 
-// Updated to use FormData type
 const generateEmailBody = (data: FormData): string => {
   return `
-  Job Application Details:
+Job Application Details:
 
-  Personal Information:
-  -------------------
-  Name: ${data.firstName || "Not Provided"} ${data.lastName || ""}
-  Father's Name: ${data.fatherName || "Not Provided"}
-  Date of Birth: ${data.dateOfBirth || "Not Provided"}
-  Gender: ${data.gender || "Not Provided"}
-  Category: ${data.category || "Not Provided"}
-  Physically Handicapped: ${data.handicapped || "Not Provided"}
-  Aadhar Number: ${data.adharnumber || "Not Provided"}
+Personal Information:
+-------------------
+Name: ${data.firstName} ${data.lastName}
+Father's Name: ${data.fatherName}
+Date of Birth: ${data.dateOfBirth}
+Gender: ${data.gender}
+Category: ${data.category}
+Physically Handicapped: ${data.handicapped}
+Aadhar Number: ${data.adharnumber}
 
-  Contact Information:
-  ------------------
-  Email: ${data.email || "Not Provided"}
-  Phone: ${data.phone || "Not Provided"}
-  Address: ${data.address || "Not Provided"}
-  City: ${data.city || "Not Provided"}
-  Pincode: ${data.pincode || "Not Provided"}
+Contact Information:
+------------------
+Email: ${data.email}
+Phone: ${data.phone}
+Address: ${data.address}
+City: ${data.city}
+Pincode: ${data.pincode}
 
-  Educational Information:
-  ---------------------
-  10th Details:
-  ${data.tenthBoard ? `Board: ${data.tenthBoard}, Year: ${data.tenthYear}, Percentage: ${data.tenthPercentage}` : "Not Provided"}
+Educational Information:
+---------------------
+10th Details:
+${data.tenthApplicable === 'yes' ? `
+School: ${data.tenthBoard}
+Year: ${data.tenthYear}
+Percentage: ${data.tenthPercentage}
+` : 'Not Applicable'}
 
-  Intermediate Details:
-  ${data.interBoard ? `Board: ${data.interBoard}, Year: ${data.interYear}, Percentage: ${data.interPercentage}` : "Not Provided"}
+Intermediate Details:
+${data.interApplicable === 'yes' ? `
+College: ${data.interBoard}
+Year: ${data.interYear}
+Percentage: ${data.interPercentage}
+` : 'Not Applicable'}
 
-  Diploma Details:
-  ${data.diplomaBoard ? `Institution: ${data.diplomaBoard}, Year: ${data.diplomaYear}, Percentage: ${data.diplomaPercentage}` : "Not Provided"}
+Diploma Details:
+${data.diplomaApplicable === 'yes' ? `
+Institution: ${data.diplomaBoard}
+Year: ${data.diplomaYear}
+Percentage: ${data.diplomaPercentage}
+` : 'Not Applicable'}
 
-  Graduation Details:
-  ${data.graduationBoard ? `University: ${data.graduationBoard}, Year: ${data.graduationYear}, Percentage: ${data.graduationPercentage}` : "Not Provided"}
+Graduation Details:
+${data.graduationApplicable === 'yes' ? `
+University: ${data.graduationBoard}
+Year: ${data.graduationYear}
+Percentage: ${data.graduationPercentage}
+` : 'Not Applicable'}
 
-  Professional Information:
-  ----------------------
-  Position Applied For: ${data.position || "Not Provided"}
-  Total Experience: ${data.experience || "Not Provided"} years
-  `.trim();
+Professional Information:
+----------------------
+Position Applied For: ${data.position}
+Total Experience: ${data.experience} years
+`.trim();
 };
 
 const compressImage = async (file: File): Promise<File> => {
