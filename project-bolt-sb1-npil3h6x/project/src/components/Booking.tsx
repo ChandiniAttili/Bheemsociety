@@ -83,6 +83,7 @@ const initialFormData: FormData = {
   graduationMemo: null
 };
 
+
 export default function BookingForm({ onSubmitSuccess }: ApplicationFormProps) {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
