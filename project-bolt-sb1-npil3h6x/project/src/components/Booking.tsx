@@ -65,12 +65,14 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     tenthBoard: '',
     tenthYear: '',
     tenthPercentage: '',
-    interBoard: '',
-    interYear: '',
-    interPercentage: '',
-    diplomaBoard: '',
-    diplomaYear: '',
-    diplomaPercentage: '',
+    // Default Intermediate values set to "NA"
+    interBoard: 'NA',
+    interYear: 'NA',
+    interPercentage: 'NA',
+    // Default Diploma values set to "NA"
+    diplomaBoard: 'NA',
+    diplomaYear: 'NA',
+    diplomaPercentage: 'NA',
     graduationBoard: '',
     graduationYear: '',
     graduationPercentage: '',
@@ -85,22 +87,25 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [message, setMessage] = useState('');
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, files: fileList } = e.target;
     if (fileList && fileList[0]) {
-      setFiles(prev => ({
+      setFiles((prev) => ({
         ...prev,
-        [name]: fileList[0]
+        [name]: fileList[0],
       }));
     }
   };
@@ -110,34 +115,73 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     setIsSubmitting(true);
     setMessage('');
 
+    // Conditional validation for Intermediate.
+    // If the user enters any value other than "NA" then all details must be provided.
+    if (
+      (formData.interBoard.trim() !== 'NA' ||
+        formData.interYear.trim() !== 'NA' ||
+        formData.interPercentage.trim() !== 'NA') &&
+      (
+        !formData.interBoard.trim() ||
+        !formData.interYear.trim() ||
+        !formData.interPercentage.trim() ||
+        !files.interMarks
+      )
+    ) {
+      setMessage(
+        "Please enter complete Intermediate details (Board, Year, Percentage, and Upload Memo) or mark all as 'NA' if not applicable."
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Conditional validation for Diploma.
+    if (
+      (formData.diplomaBoard.trim() !== 'NA' ||
+        formData.diplomaYear.trim() !== 'NA' ||
+        formData.diplomaPercentage.trim() !== 'NA') &&
+      (
+        !formData.diplomaBoard.trim() ||
+        !formData.diplomaYear.trim() ||
+        !formData.diplomaPercentage.trim() ||
+        !files.diplomaMarks
+      )
+    ) {
+      setMessage(
+        "Please enter complete Diploma details (Board, Year, Percentage, and Upload Memo) or mark all as 'NA' if not applicable."
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
 
-      // Construct email body with structured details
       const emailBody = `
-        **Personal Information**
-        - First Name: ${formData.firstName}
-        - Last Name: ${formData.lastName}
-        - Father's Name: ${formData.fatherName}
-        - Date of Birth: ${formData.dateOfBirth}
-        - Gender: ${formData.gender}
-        - Category: ${formData.category}
-        - Handicapped: ${formData.handicapped}
-        - Aadhar Number: ${formData.aadharNumber}
+**Personal Information**
+- First Name: ${formData.firstName}
+- Last Name: ${formData.lastName}
+- Father's Name: ${formData.fatherName}
+- Date of Birth: ${formData.dateOfBirth}
+- Gender: ${formData.gender}
+- Category: ${formData.category}
+- Handicapped: ${formData.handicapped}
+- Aadhar Number: ${formData.aadharNumber}
 
-        **Contact Information**
-        - Email: ${formData.email}
-        - Phone: ${formData.phone}
-        - Address: ${formData.address}, ${formData.city}, ${formData.pincode}
+**Contact Information**
+- Email: ${formData.email}
+- Phone: ${formData.phone}
+- Address: ${formData.address}, ${formData.city}, ${formData.pincode}
 
-        **Educational Information**
-        - 10th: ${formData.tenthBoard}, ${formData.tenthYear}, ${formData.tenthPercentage}%
-        - Inter: ${formData.interBoard}, ${formData.interYear}, ${formData.interPercentage}%
-        - Diploma: ${formData.diplomaBoard}, ${formData.diplomaYear}, ${formData.diplomaPercentage}%
-        - Graduation: ${formData.graduationBoard}, ${formData.graduationYear}, ${formData.graduationPercentage}%
-        
-        **Position Applied**: ${formData.position}
-        **Experience**: ${formData.experience}
+**Educational Information**
+- 10th: ${formData.tenthBoard}, ${formData.tenthYear}, ${formData.tenthPercentage}%
+- Intermediate: ${formData.interBoard}, ${formData.interYear}, ${formData.interPercentage}%
+- Diploma: ${formData.diplomaBoard}, ${formData.diplomaYear}, ${formData.diplomaPercentage}%
+- Graduation: ${formData.graduationBoard}, ${formData.graduationYear}, ${formData.graduationPercentage}%
+
+**Professional Information**
+- Position Applied For: ${formData.position}
+- Experience: ${formData.experience}
       `;
 
       // Append email details
@@ -145,7 +189,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       formDataToSend.append('subject', `Application for ${formData.position}`);
       formDataToSend.append('body', emailBody);
 
-      // Append all form data
+      // Append all text fields
       Object.entries(formData).forEach(([key, value]) => {
         formDataToSend.append(key, value);
       });
@@ -157,16 +201,20 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
         }
       });
 
-      const response = await fetch('https://mailapis-3v2b.onrender.com/api/v1/mail/send', {
-        method: 'POST',
-        body: formDataToSend,
-      });
+      const response = await fetch(
+        'https://mailapis-3v2b.onrender.com/api/v1/mail/send',
+        {
+          method: 'POST',
+          body: formDataToSend,
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Submission failed');
       }
 
       setMessage('Application submitted successfully!');
+      setIsSubmitted(true);
       onSubmitSuccess();
     } catch (error) {
       setMessage('Failed to submit application. Please try again.');
@@ -174,6 +222,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       setIsSubmitting(false);
     }
   };
+
   return (
     <div className="p-6 md:p-8">
       <div className="flex items-center justify-center mb-8">
@@ -182,7 +231,13 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       </div>
 
       {message && (
-        <div className={`mb-4 p-4 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+        <div
+          className={`mb-4 p-4 rounded ${
+            message.includes('success')
+              ? 'bg-green-100 text-green-700'
+              : 'bg-red-100 text-red-700'
+          }`}
+        >
           {message}
         </div>
       )}
@@ -193,7 +248,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
           <h2 className="text-xl font-semibold mb-4">Professional Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Position Applied For</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Position Applied For
+              </label>
               <select
                 name="position"
                 value={formData.position}
@@ -207,7 +264,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Total Experience (years)</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Total Experience (years)
+              </label>
               <input
                 type="number"
                 name="experience"
@@ -227,7 +286,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
           <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">First Name</label>
+              <label className="block text-sm font-medium text-gray-700">
+                First Name
+              </label>
               <input
                 type="text"
                 name="firstName"
@@ -238,7 +299,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Last Name</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Last Name
+              </label>
               <input
                 type="text"
                 name="lastName"
@@ -249,7 +312,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Father's Name</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Father's Name
+              </label>
               <input
                 type="text"
                 name="fatherName"
@@ -260,7 +325,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Date of Birth
+              </label>
               <input
                 type="date"
                 name="dateOfBirth"
@@ -271,7 +338,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Gender</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Gender
+              </label>
               <select
                 name="gender"
                 value={formData.gender}
@@ -286,7 +355,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Category
+              </label>
               <select
                 name="category"
                 value={formData.category}
@@ -302,7 +373,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Handicapped</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Handicapped
+              </label>
               <select
                 name="handicapped"
                 value={formData.handicapped}
@@ -315,7 +388,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Aadhar Number</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Aadhar Number
+              </label>
               <input
                 type="text"
                 name="aadharNumber"
@@ -335,7 +410,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
           <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
               <input
                 type="email"
                 name="email"
@@ -346,7 +423,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Phone
+              </label>
               <input
                 type="tel"
                 name="phone"
@@ -359,7 +438,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Address</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Address
+              </label>
               <textarea
                 name="address"
                 value={formData.address}
@@ -370,7 +451,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">City</label>
+              <label className="block text-sm font-medium text-gray-700">
+                City
+              </label>
               <input
                 type="text"
                 name="city"
@@ -381,7 +464,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Pincode</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Pincode
+              </label>
               <input
                 type="text"
                 name="pincode"
@@ -405,7 +490,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
             <h3 className="text-lg font-medium mb-3">10th Class</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Board</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Board
+                </label>
                 <input
                   type="text"
                   name="tenthBoard"
@@ -416,7 +503,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Year</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Year
+                </label>
                 <input
                   type="text"
                   name="tenthYear"
@@ -428,7 +517,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Percentage</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Percentage
+                </label>
                 <input
                   type="number"
                   name="tenthPercentage"
@@ -442,7 +533,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
                 />
               </div>
               <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Upload Memo
+                </label>
                 <input
                   type="file"
                   name="tenthMarks"
@@ -460,49 +553,55 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
             <h3 className="text-lg font-medium mb-3">Intermediate</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Board</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Board
+                </label>
                 <input
                   type="text"
                   name="interBoard"
                   value={formData.interBoard}
                   onChange={handleInputChange}
-                  required
+                  // Not forcing required since "NA" is acceptable
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Year</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Year
+                </label>
                 <input
                   type="text"
                   name="interYear"
                   value={formData.interYear}
                   onChange={handleInputChange}
-                  required
-                  pattern="[0-9]{4}"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  pattern="[0-9]{4}|NA"
+                  title="Enter a 4-digit year or NA"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Percentage</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Percentage
+                </label>
                 <input
                   type="number"
                   name="interPercentage"
                   value={formData.interPercentage}
                   onChange={handleInputChange}
-                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   min="0"
                   max="100"
                   step="0.01"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Upload Memo
+                </label>
                 <input
                   type="file"
                   name="interMarks"
                   onChange={handleFileChange}
-                  required
                   accept=".pdf,.jpg,.jpeg,.png"
                   className="mt-1 block w-full"
                 />
@@ -512,10 +611,12 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
 
           {/* Diploma */}
           <div className="mb-6">
-            <h3 className="text-lg font-medium mb-3">Diploma (if applicable)</h3>
+            <h3 className="text-lg font-medium mb-3">Diploma</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Board</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Board
+                </label>
                 <input
                   type="text"
                   name="diplomaBoard"
@@ -525,31 +626,38 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Year</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Year
+                </label>
                 <input
                   type="text"
                   name="diplomaYear"
                   value={formData.diplomaYear}
                   onChange={handleInputChange}
-                  pattern="[0-9]{4}"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  pattern="[0-9]{4}|NA"
+                  title="Enter a 4-digit year or NA"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Percentage</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Percentage
+                </label>
                 <input
                   type="number"
                   name="diplomaPercentage"
                   value={formData.diplomaPercentage}
                   onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   min="0"
                   max="100"
                   step="0.01"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Upload Memo
+                </label>
                 <input
                   type="file"
                   name="diplomaMarks"
@@ -563,10 +671,12 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
 
           {/* Graduation */}
           <div>
-            <h3 className="text-lg font-medium mb-3">Graduation (if applicable)</h3>
+            <h3 className="text-lg font-medium mb-3">Graduation</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">University</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  University
+                </label>
                 <input
                   type="text"
                   name="graduationBoard"
@@ -576,31 +686,37 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Year</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Year
+                </label>
                 <input
                   type="text"
                   name="graduationYear"
                   value={formData.graduationYear}
                   onChange={handleInputChange}
-                  pattern="[0-9]{4}"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  pattern="[0-9]{4}"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Percentage</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Percentage
+                </label>
                 <input
                   type="number"
                   name="graduationPercentage"
                   value={formData.graduationPercentage}
                   onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   min="0"
                   max="100"
                   step="0.01"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-gray-700">Upload Degree Certificate</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Upload Degree Certificate
+                </label>
                 <input
                   type="file"
                   name="degreeMarks"
@@ -617,7 +733,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
         <div className="bg-gray-50 p-4 rounded-lg">
           <h2 className="text-xl font-semibold mb-4">Photo Upload</h2>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Passport Size Photo</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Passport Size Photo
+            </label>
             <input
               type="file"
               name="passportSizePhoto"
@@ -626,7 +744,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
               accept=".jpg,.jpeg,.png"
               className="mt-1 block w-full"
             />
-            <p className="mt-1 text-sm text-gray-500">Please upload a recent passport size photograph</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Please upload a recent passport size photograph
+            </p>
           </div>
         </div>
 
@@ -634,12 +754,15 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isSubmitted}
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {isSubmitting ? 'Submitting...' : 'Submit Application'}
+            {isSubmitting ? 'Submitting...' : isSubmitted ? 'Submitted' : 'Submit Application'}
+            <Send className="ml-2" size={18} />
           </button>
         </div>
+
+        {message && <p className="mt-4 text-center">{message}</p>}
       </form>
     </div>
   );

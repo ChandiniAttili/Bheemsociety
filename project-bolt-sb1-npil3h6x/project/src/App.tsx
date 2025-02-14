@@ -16,6 +16,9 @@ export default function App() {
 
   // Image array
   const images = [
+    "/b1.jpeg",
+    "/b3.jpeg",
+    "/b4.jpeg",
     "/c1.jpg",
     "/c2.jpg",
     "/c3.jpg",
@@ -93,7 +96,7 @@ export default function App() {
           {/* Right Image */}
           <div className="flex flex-col items-center text-center md:w-1/4">
             <img
-              src="/d2.jpeg"
+              src="/b2.jpeg"
               alt="P. Dharmendra"
               className="w-40 h-40 object-cover rounded-full shadow-lg mb-2"
             />
