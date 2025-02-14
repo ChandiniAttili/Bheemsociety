@@ -1,5 +1,4 @@
 import React, { ChangeEvent, FormEvent } from 'react';
-import BookingForm from './Booking';
 
 // Define the props for ApplicationForm component
 interface ApplicationFormProps {

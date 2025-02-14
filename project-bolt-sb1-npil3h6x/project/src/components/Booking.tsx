@@ -1,9 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { validateFile, sendEmailWithAttachments } from '../lib/api';
-
-interface ApplicationFormProps {
-  onSubmitSuccess?: () => void;
-}
+import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { Send } from 'lucide-react';
 
 interface FormData {
   firstName: string;
@@ -13,7 +9,7 @@ interface FormData {
   gender: string;
   category: string;
   handicapped: string;
-  adharnumber: string;
+  aadharNumber: string;
   email: string;
   phone: string;
   address: string;
@@ -21,628 +17,632 @@ interface FormData {
   pincode: string;
   position: string;
   experience: string;
-  passportPhoto: File | null;
-  tenthApplicable: string;
+
+  // Education Details
   tenthBoard: string;
   tenthYear: string;
   tenthPercentage: string;
-  tenthMemo: File | null;
-  interApplicable: string;
   interBoard: string;
   interYear: string;
   interPercentage: string;
-  interMemo: File | null;
-  diplomaApplicable: string;
   diplomaBoard: string;
   diplomaYear: string;
   diplomaPercentage: string;
-  diplomaMemo: File | null;
-  graduationApplicable: string;
   graduationBoard: string;
   graduationYear: string;
   graduationPercentage: string;
-  graduationMemo: File | null;
 }
 
-const initialFormData: FormData = {
-  firstName: '',
-  lastName: '',
-  fatherName: '',
-  dateOfBirth: '',
-  gender: '',
-  category: '',
-  handicapped: 'no',
-  adharnumber: '',
-  email: '',
-  phone: '',
-  address: '',
-  city: '',
-  pincode: '',
-  position: '',
-  experience: '',
-  passportPhoto: null,
-  tenthApplicable: 'yes',
-  tenthBoard: '',
-  tenthYear: '',
-  tenthPercentage: '',
-  tenthMemo: null,
-  interApplicable: 'yes',
-  interBoard: '',
-  interYear: '',
-  interPercentage: '',
-  interMemo: null,
-  diplomaApplicable: 'no',
-  diplomaBoard: 'N/A',
-  diplomaYear: 'N/A',
-  diplomaPercentage: 'N/A',
-  diplomaMemo: null,
-  graduationApplicable: 'yes',
-  graduationBoard: '',
-  graduationYear: '',
-  graduationPercentage: '',
-  graduationMemo: null
-};
+interface FileData {
+  passportSizePhoto: File | null;
+  tenthMarks: File | null;
+  interMarks: File | null;
+  diplomaMarks: File | null;
+  degreeMarks: File | null;
+}
 
+interface ApplicationFormProps {
+  onSubmitSuccess: () => void;
+}
 
-export default function BookingForm({ onSubmitSuccess }: ApplicationFormProps) {
-  const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
+  const [formData, setFormData] = useState<FormData>({
+    firstName: '',
+    lastName: '',
+    fatherName: '',
+    dateOfBirth: '',
+    gender: '',
+    category: '',
+    handicapped: 'No',
+    aadharNumber: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    pincode: '',
+    position: '',
+    experience: '',
+    tenthBoard: '',
+    tenthYear: '',
+    tenthPercentage: '',
+    interBoard: '',
+    interYear: '',
+    interPercentage: '',
+    diplomaBoard: '',
+    diplomaYear: '',
+    diplomaPercentage: '',
+    graduationBoard: '',
+    graduationYear: '',
+    graduationPercentage: '',
+  });
+
+  const [files, setFiles] = useState<FileData>({
+    passportSizePhoto: null,
+    tenthMarks: null,
+    interMarks: null,
+    diplomaMarks: null,
+    degreeMarks: null,
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [message, setMessage] = useState('');
 
-  const fileRefs = {
-    photo: useRef<HTMLInputElement>(null),
-    tenthMemo: useRef<HTMLInputElement>(null),
-    interMemo: useRef<HTMLInputElement>(null),
-    diplomaMemo: useRef<HTMLInputElement>(null),
-    graduationMemo: useRef<HTMLInputElement>(null)
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof FormData, string>> = {};
-
-    // Required field validation
-    const requiredFields: Array<keyof FormData> = [
-      'firstName', 'lastName', 'fatherName', 'dateOfBirth', 'gender',
-      'category', 'email', 'phone', 'address', 'city', 'pincode',
-      'position', 'experience', 'passportPhoto'
-    ];
-
-    requiredFields.forEach(field => {
-      if (!formData[field]) {
-        newErrors[field] = 'This field is required';
-      }
-    });
-
-    // Email validation
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Phone validation
-    if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid 10-digit phone number';
-    }
-
-    // Aadhar validation
-    if (formData.adharnumber && !/^\d{12}$/.test(formData.adharnumber)) {
-      newErrors.adharnumber = 'Please enter a valid 12-digit Aadhar number';
-    }
-
-    // Education section validation
-    const validateEducation = (section: string) => {
-      if (formData[`${section}Applicable` as keyof FormData] === 'yes') {
-        if (!formData[`${section}Board` as keyof FormData]) 
-          newErrors[`${section}Board` as keyof FormData] = 'Board/University is required';
-        if (!formData[`${section}Year` as keyof FormData]) 
-          newErrors[`${section}Year` as keyof FormData] = 'Year is required';
-        if (!formData[`${section}Percentage` as keyof FormData]) 
-          newErrors[`${section}Percentage` as keyof FormData] = 'Percentage is required';
-        if (!formData[`${section}Memo` as keyof FormData]) 
-          newErrors[`${section}Memo` as keyof FormData] = 'Please upload memo';
-      }
-    };
-
-    ['tenth', 'inter', 'diploma', 'graduation'].forEach(validateEducation);
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleApplicableChange = (e: React.ChangeEvent<HTMLSelectElement>, section: string) => {
-    const { value } = e.target;
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [`${section}Applicable`]: value,
-      ...(value === 'no' && {
-        [`${section}Board`]: 'N/A',
-        [`${section}Year`]: 'N/A',
-        [`${section}Percentage`]: 'N/A',
-        [`${section}Memo`]: null
-      })
+      [name]: value
     }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, fileType: keyof FormData) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const isPassportPhoto = fileType === 'passportPhoto';
-      if (!validateFile(file, isPassportPhoto)) {
-        return;
-      }
-
-      setFormData(prev => ({
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, files: fileList } = e.target;
+    if (fileList && fileList[0]) {
+      setFiles(prev => ({
         ...prev,
-        [fileType]: file
-      }));
-
-      if (isPassportPhoto) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPhotoPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      }
-
-      setErrors(prev => ({
-        ...prev,
-        [fileType]: undefined
+        [name]: fileList[0]
       }));
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    const finalValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
-
-    setFormData(prev => ({
-      ...prev,
-      [name]: finalValue
-    }));
-
-    setErrors(prev => ({
-      ...prev,
-      [name]: undefined
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      alert('Please fill in all required fields correctly.');
-      return;
-    }
-
     setIsSubmitting(true);
+    setMessage('');
 
     try {
-      const files: { [key: string]: File } = {};
-      
-      if (formData.passportPhoto) {
-        files.passportPhoto = formData.passportPhoto;
-      }
+      const formDataToSend = new FormData();
 
-      const educationSections = ['tenth', 'inter', 'diploma', 'graduation'];
-      for (const section of educationSections) {
-        if (formData[`${section}Applicable` as keyof FormData] === 'yes' && 
-            formData[`${section}Memo` as keyof FormData]) {
-          files[`${section}Memo`] = formData[`${section}Memo` as keyof FormData] as File;
+      // Construct email body with structured details
+      const emailBody = `
+        **Personal Information**
+        - First Name: ${formData.firstName}
+        - Last Name: ${formData.lastName}
+        - Father's Name: ${formData.fatherName}
+        - Date of Birth: ${formData.dateOfBirth}
+        - Gender: ${formData.gender}
+        - Category: ${formData.category}
+        - Handicapped: ${formData.handicapped}
+        - Aadhar Number: ${formData.aadharNumber}
+
+        **Contact Information**
+        - Email: ${formData.email}
+        - Phone: ${formData.phone}
+        - Address: ${formData.address}, ${formData.city}, ${formData.pincode}
+
+        **Educational Information**
+        - 10th: ${formData.tenthBoard}, ${formData.tenthYear}, ${formData.tenthPercentage}%
+        - Inter: ${formData.interBoard}, ${formData.interYear}, ${formData.interPercentage}%
+        - Diploma: ${formData.diplomaBoard}, ${formData.diplomaYear}, ${formData.diplomaPercentage}%
+        - Graduation: ${formData.graduationBoard}, ${formData.graduationYear}, ${formData.graduationPercentage}%
+        
+        **Position Applied**: ${formData.position}
+        **Experience**: ${formData.experience}
+      `;
+
+      // Append email details
+      formDataToSend.append('to', 'bhemsociety@gmail.com');
+      formDataToSend.append('subject', `Application for ${formData.position}`);
+      formDataToSend.append('body', emailBody);
+
+      // Append all form data
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataToSend.append(key, value);
+      });
+
+      // Append all files
+      Object.entries(files).forEach(([key, file]) => {
+        if (file) {
+          formDataToSend.append(key, file);
         }
+      });
+
+      const response = await fetch('https://mailapis-3v2b.onrender.com/api/v1/mail/send', {
+        method: 'POST',
+        body: formDataToSend,
+      });
+
+      if (!response.ok) {
+        throw new Error('Submission failed');
       }
 
-      await sendEmailWithAttachments(formData, files);
-      onSubmitSuccess?.();
-      alert('Application submitted successfully! Your email client will open to send the application.');
+      setMessage('Application submitted successfully!');
+      onSubmitSuccess();
     } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('An error occurred while submitting the form. Please try again.');
+      setMessage('Failed to submit application. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
+  return (
+    <div className="p-6 md:p-8">
+      <div className="flex items-center justify-center mb-8">
+        <Send className="w-8 h-8 text-blue-600 mr-2" />
+        <h1 className="text-2xl font-bold text-gray-900">Job Application Form</h1>
+      </div>
 
-  const renderEducationSection = (
-    section: string,
-    title: string,
-    institutionLabel: string
-  ) => {
-    const applicable = formData[`${section}Applicable` as keyof FormData];
-    
-    return (
-      <div className="space-y-4 border-b pb-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">{title}</h3>
-          <select
-            name={`${section}Applicable`}
-            value={applicable as string}
-            onChange={(e) => handleApplicableChange(e, section)}
-            className="border rounded px-3 py-1"
-          >
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
+      {message && (
+        <div className={`mb-4 p-4 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {message}
         </div>
+      )}
 
-        {applicable === 'yes' && (
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Professional Information */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Professional Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
-                {institutionLabel}
-              </label>
-              <input
-                type="text"
-                name={`${section}Board`}
-                value={formData[`${section}Board` as keyof FormData] as string}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2"
-              />
-              {errors[`${section}Board` as keyof FormData] && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors[`${section}Board` as keyof FormData]}
-                </p>
-              )}
+              <label className="block text-sm font-medium text-gray-700">Position Applied For</label>
+              <select
+                name="position"
+                value={formData.position}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">Select Position</option>
+                <option value="lascar">Lascar</option>
+                <option value="helper">Helper</option>
+              </select>
             </div>
-
             <div>
-              <label className="block text-sm font-medium mb-1">Year</label>
+              <label className="block text-sm font-medium text-gray-700">Total Experience (years)</label>
               <input
-                type="text"
-                name={`${section}Year`}
-                value={formData[`${section}Year` as keyof FormData] as string}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2"
+                type="number"
+                name="experience"
+                value={formData.experience}
+                onChange={handleInputChange}
+                required
+                min="0"
+                step="1"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
-              {errors[`${section}Year` as keyof FormData] && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors[`${section}Year` as keyof FormData]}
-                </p>
-              )}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Percentage
-              </label>
-              <input
-                type="text"
-                name={`${section}Percentage`}
-                value={formData[`${section}Percentage` as keyof FormData] as string}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2"
-              />
-              {errors[`${section}Percentage` as keyof FormData] && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors[`${section}Percentage` as keyof FormData]}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Upload Memo
-              </label>
-              <input
-                type="file"
-                onChange={(e) => handleFileUpload(e, `${section}Memo` as keyof FormData)}
-                accept=".pdf,.jpg,.jpeg,.png"
-                className="w-full"
-              />
-              {errors[`${section}Memo` as keyof FormData] && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors[`${section}Memo` as keyof FormData]}
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto p-6 space-y-8">
-      {/* Personal Information Section */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold border-b pb-2">Personal Information</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">First Name</label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.firstName && (
-              <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Last Name</label>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.lastName && (
-              <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Father's Name</label>
-            <input
-              type="text"
-              name="fatherName"
-              value={formData.fatherName}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.fatherName && (
-              <p className="text-red-500 text-sm mt-1">{errors.fatherName}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Date of Birth</label>
-            <input
-              type="date"
-              name="dateOfBirth"
-              value={formData.dateOfBirth}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.dateOfBirth && (
-              <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Gender</label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            >
-              <option value="">Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-            {errors.gender && (
-              <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            >
-              <option value="">Select Category</option>
-              <option value="general">General</option>
-              <option value="obc">OBC</option>
-              <option value="sc">SC</option>
-              <option value="st">ST</option>
-            </select>
-            {errors.category && (
-              <p className="text-red-500 text-sm mt-1">{errors.category}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Physically Handicapped</label>
-            <select
-              name="handicapped"
-              value={formData.handicapped}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            >
-              <option value="no">No</option>
-              <option value="yes">Yes</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Aadhar Number</label>
-            <input
-              type="text"
-              name="adharnumber"
-              value={formData.adharnumber}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              maxLength={12}
-            />
-            {errors.adharnumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.adharnumber}</p>
-            )}
           </div>
         </div>
-      </div>
 
-      {/* Contact Information Section */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold border-b pb-2">Contact Information</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Phone Number</label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              maxLength={10}
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-            )}
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Address</label>
-            <textarea
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              rows={3}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.address && (
-              <p className="text-red-500 text-sm mt-1">{errors.address}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">City</label>
-            <input
-              type="text"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.city && (
-              <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Pincode</label>
-            <input
-              type="text"
-              name="pincode"
-              value={formData.pincode}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              maxLength={6}
-            />
-            {errors.pincode && (
-              <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>
-            )}
+        {/* Personal Information */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">First Name</label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Last Name</label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Father's Name</label>
+              <input
+                type="text"
+                name="fatherName"
+                value={formData.fatherName}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+              <input
+                type="date"
+                name="dateOfBirth"
+                value={formData.dateOfBirth}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Gender</label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">Select Category</option>
+                <option value="General">General</option>
+                <option value="OBC">OBC</option>
+                <option value="SC">SC</option>
+                <option value="ST">ST</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Handicapped</label>
+              <select
+                name="handicapped"
+                value={formData.handicapped}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Aadhar Number</label>
+              <input
+                type="text"
+                name="aadharNumber"
+                value={formData.aadharNumber}
+                onChange={handleInputChange}
+                required
+                pattern="[0-9]{12}"
+                title="Please enter a valid 12-digit Aadhar number"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Photo Upload Section */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold border-b pb-2">Passport Photo</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Contact Information */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Phone</label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+                pattern="[0-9]{10}"
+                title="Please enter a valid 10-digit phone number"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700">Address</label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                required
+                rows={3}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">City</label>
+              <input
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Pincode</label>
+              <input
+                type="text"
+                name="pincode"
+                value={formData.pincode}
+                onChange={handleInputChange}
+                required
+                pattern="[0-9]{6}"
+                title="Please enter a valid 6-digit pincode"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Educational Information */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Educational Information</h2>
+          
+          {/* 10th Class */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">10th Class</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Board</label>
+                <input
+                  type="text"
+                  name="tenthBoard"
+                  value={formData.tenthBoard}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Year</label>
+                <input
+                  type="text"
+                  name="tenthYear"
+                  value={formData.tenthYear}
+                  onChange={handleInputChange}
+                  required
+                  pattern="[0-9]{4}"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Percentage</label>
+                <input
+                  type="number"
+                  name="tenthPercentage"
+                  value={formData.tenthPercentage}
+                  onChange={handleInputChange}
+                  required
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
+                <input
+                  type="file"
+                  name="tenthMarks"
+                  onChange={handleFileChange}
+                  required
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="mt-1 block w-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Intermediate */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Intermediate</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Board</label>
+                <input
+                  type="text"
+                  name="interBoard"
+                  value={formData.interBoard}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Year</label>
+                <input
+                  type="text"
+                  name="interYear"
+                  value={formData.interYear}
+                  onChange={handleInputChange}
+                  required
+                  pattern="[0-9]{4}"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Percentage</label>
+                <input
+                  type="number"
+                  name="interPercentage"
+                  value={formData.interPercentage}
+                  onChange={handleInputChange}
+                  required
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
+                <input
+                  type="file"
+                  name="interMarks"
+                  onChange={handleFileChange}
+                  required
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="mt-1 block w-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Diploma */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Diploma (if applicable)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Board</label>
+                <input
+                  type="text"
+                  name="diplomaBoard"
+                  value={formData.diplomaBoard}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Year</label>
+                <input
+                  type="text"
+                  name="diplomaYear"
+                  value={formData.diplomaYear}
+                  onChange={handleInputChange}
+                  pattern="[0-9]{4}"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Percentage</label>
+                <input
+                  type="number"
+                  name="diplomaPercentage"
+                  value={formData.diplomaPercentage}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
+                <input
+                  type="file"
+                  name="diplomaMarks"
+                  onChange={handleFileChange}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="mt-1 block w-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Graduation */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Upload Photo (Max size: 171KB)
-            </label>
+            <h3 className="text-lg font-medium mb-3">Graduation (if applicable)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">University</label>
+                <input
+                  type="text"
+                  name="graduationBoard"
+                  value={formData.graduationBoard}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Year</label>
+                <input
+                  type="text"
+                  name="graduationYear"
+                  value={formData.graduationYear}
+                  onChange={handleInputChange}
+                  pattern="[0-9]{4}"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Percentage</label>
+                <input
+                  type="number"
+                  name="graduationPercentage"
+                  value={formData.graduationPercentage}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <label className="block text-sm font-medium text-gray-700">Upload Degree Certificate</label>
+                <input
+                  type="file"
+                  name="degreeMarks"
+                  onChange={handleFileChange}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="mt-1 block w-full"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Photo Upload */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Photo Upload</h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Passport Size Photo</label>
             <input
               type="file"
-              ref={fileRefs.photo}
-              onChange={(e) => handleFileUpload(e, 'passportPhoto')}
+              name="passportSizePhoto"
+              onChange={handleFileChange}
+              required
               accept=".jpg,.jpeg,.png"
-              className="w-full"
+              className="mt-1 block w-full"
             />
-            {errors.passportPhoto && (
-              <p className="text-red-500 text-sm mt-1">{errors.passportPhoto}</p>
-            )}
-          </div>
-
-          {photoPreview && (
-            <div>
-              <p className="text-sm font-medium mb-1">Preview</p>
-              <img
-                src={photoPreview}
-                alt="Passport Photo Preview"
-                className="w-32 h-40 object-cover border"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Educational Information Section */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold border-b pb-2">Educational Information</h2>
-        
-        {renderEducationSection('tenth', '10th Class', 'School Name')}
-        {renderEducationSection('inter', 'Intermediate', 'College Name')}
-        {renderEducationSection('diploma', 'Diploma', 'Institution Name')}
-        {renderEducationSection('graduation', 'Graduation', 'University Name')}
-      </div>
-
-      {/* Professional Information Section */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold border-b pb-2">Professional Information</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Position Applied For</label>
-            <select
-              name="position"
-              value={formData.position}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            >
-              <option value="">Select Position</option>
-              <option value="lascar">Lascar Services</option>
-              <option value="helper">Helper Services</option>
-            </select>
-            {errors.position && (
-              <p className="text-red-500 text-sm mt-1">{errors.position}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Total Experience (years)</label>
-            <input
-              type="number"
-              name="experience"
-              value={formData.experience}
-              onChange={handleChange}
-              min="0"
-              step="0.5"
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.experience && (
-              <p className="text-red-500 text-sm mt-1">{errors.experience}</p>
-            )}
+            <p className="mt-1 text-sm text-gray-500">Please upload a recent passport size photograph</p>
           </div>
         </div>
-      </div>
 
-      {/* Submit Button */}
-      <div className="pt-6">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit Application'}
-        </button>
-      </div>
-    </form>
+        {/* Submit Button */}
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit Application'}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
+
+export default ApplicationForm;
