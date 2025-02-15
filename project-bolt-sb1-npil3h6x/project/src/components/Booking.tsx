@@ -134,7 +134,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
   
     // ✅ Validation for Intermediate
     if (
-      formData.interApplicable === "yes" && // Only validate if "Yes" is selected
+      formData.interApplicable === "yes" &&
       (!formData.interYear.trim() || 
        !formData.interPercentage.trim() || 
        !files.interMarks)
@@ -146,7 +146,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
   
     // ✅ Validation for Diploma
     if (
-      formData.diplomaApplicable === "yes" && // Only validate if "Yes" is selected
+      formData.diplomaApplicable === "yes" &&
       (!formData.diplomaYear.trim() || 
        !formData.diplomaPercentage.trim() || 
        !files.diplomaMarks)
@@ -158,7 +158,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
   
     // ✅ Validation for Graduation
     if (
-      formData.graduateApplicable === "yes" && // Only validate if "Yes" is selected
+      formData.graduateApplicable === "yes" &&
       (!formData.graduateYear.trim() || 
        !formData.graduatePercentage.trim() || 
        !files.graduateMarks)
@@ -167,49 +167,62 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       setIsSubmitting(false);
       return;
     }
-
+  
     try {
       const formDataToSend = new FormData();
-
+  
+      // ✅ Construct email body dynamically
       const emailBody = `
-**Personal Information**
-- First Name: ${formData.firstName}
-- Last Name: ${formData.lastName}
-- Father's Name: ${formData.fatherName}
-- Date of Birth: ${formData.dateOfBirth}
-- Gender: ${formData.gender}
-- Category: ${formData.category}
-- Handicapped: ${formData.handicapped}
-- Aadhar Number: ${formData.aadharNumber}
-
-**Contact Information**
-- Email: ${formData.email}
-- Phone: ${formData.phone}
-- Address: ${formData.address}, ${formData.city}, ${formData.pincode}
-
-**Educational Information**
-- 10th: ${formData.tenthBoard}, ${formData.tenthYear}, ${formData.tenthPercentage}%
-- Intermediate: ${formData.interBoard}, ${formData.interYear}, ${formData.interPercentage}%
-- Diploma: ${formData.diplomaBoard}, ${formData.diplomaYear}, ${formData.diplomaPercentage}%
-- Graduation: ${formData.graduationBoard}, ${formData.graduationYear}, ${formData.graduationPercentage}%
-
-**Professional Information**
-- Position Applied For: ${formData.position}
-- Experience: ${formData.experience}
+  **Personal Information**
+  - First Name: ${formData.firstName}
+  - Last Name: ${formData.lastName}
+  - Father's Name: ${formData.fatherName}
+  - Date of Birth: ${formData.dateOfBirth}
+  - Gender: ${formData.gender}
+  - Category: ${formData.category}
+  - Handicapped: ${formData.handicapped}
+  - Aadhar Number: ${formData.aadharNumber}
+  
+  **Contact Information**
+  - Email: ${formData.email}
+  - Phone: ${formData.phone}
+  - Address: ${formData.address}, ${formData.city}, ${formData.pincode}
+  
+  **Educational Information**
+  - 10th: ${formData.tenthBoard}, ${formData.tenthYear}, ${formData.tenthPercentage}%
+  ${formData.interApplicable === "yes" ? `- Intermediate: ${formData.interBoard}, ${formData.interYear}, ${formData.interPercentage}%` : ""}
+  ${formData.diplomaApplicable === "yes" ? `- Diploma: ${formData.diplomaBoard}, ${formData.diplomaYear}, ${formData.diplomaPercentage}%` : ""}
+  ${formData.graduateApplicable === "yes" ? `- Graduation: ${formData.graduationBoard}, ${formData.graduationYear}, ${formData.graduationPercentage}%` : ""}
+  
+  **Professional Information**
+  - Position Applied For: ${formData.position}
+  - Experience: ${formData.experience}
       `;
-
-      // Append email details
+  
+      // ✅ Append email details
       formDataToSend.append('to', 'bhemsociety@gmail.com');
       formDataToSend.append('subject', `Application for ${formData.position}`);
       formDataToSend.append('body', emailBody);
-
-      // Append all text fields
+  
+      // ✅ Append only applicable text fields
       Object.entries(formData).forEach(([key, value]) => {
+        if (
+          (key.startsWith("inter") && formData.interApplicable !== "yes") ||
+          (key.startsWith("diploma") && formData.diplomaApplicable !== "yes") ||
+          (key.startsWith("graduate") && formData.graduateApplicable !== "yes")
+        ) return;
+  
         formDataToSend.append(key, value);
       });
-
-      // Append all files
+  
+      // ✅ Append only applicable files
       Object.entries(files).forEach(([key, file]) => {
+        if (
+          (key === "interMarks" && formData.interApplicable !== "yes") ||
+          (key === "diplomaMarks" && formData.diplomaApplicable !== "yes") ||
+          (key === "graduateMarks" && formData.graduateApplicable !== "yes")
+        ) return;
+  
         if (file) {
           formDataToSend.append(key, file);
         }
