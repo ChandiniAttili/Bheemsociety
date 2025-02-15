@@ -203,12 +203,13 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       if (!response.ok) {
         throw new Error('Submission failed');
       }
+      setMessage('Failed to submit application. Please try again.');
 
-      setMessage('Application submitted successfully!');
       setIsSubmitted(true);
       onSubmitSuccess();
     } catch (error) {
-      setMessage('Failed to submit application. Please try again.');
+      setMessage('Application submitted successfully!');
+
     } finally {
       setIsSubmitting(false);
     }
