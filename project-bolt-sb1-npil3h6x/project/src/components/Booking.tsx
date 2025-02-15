@@ -120,42 +120,27 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage('');
-
-    // Conditional validation for Intermediate.
-    // If the user enters any value other than "NA" then all details must be provided.
+  
+    // ✅ Validation for Intermediate
     if (
-      (formData.interBoard.trim() !== 'NA' ||
-        formData.interYear.trim() !== 'NA' ||
-        formData.interPercentage.trim() !== 'NA') &&
-      (
-        !formData.interBoard.trim() ||
-        !formData.interYear.trim() ||
-        !formData.interPercentage.trim() ||
-        !files.interMarks
-      )
+      formData.interApplicable === "yes" && // Only validate if "Yes" is selected
+      (!formData.interYear.trim() || 
+       !formData.interPercentage.trim() || 
+       !files.interMarks)
     ) {
-      setMessage(
-        "Please enter complete Intermediate details (Board, Year, Percentage, and Upload Memo) or mark all as 'NA' if not applicable."
-      );
+      setMessage("Please enter complete Intermediate details (Year, Percentage, and Upload Memo).");
       setIsSubmitting(false);
       return;
     }
-
-    // Conditional validation for Diploma.
+  
+    // ✅ Validation for Diploma
     if (
-      (formData.diplomaBoard.trim() !== 'NA' ||
-        formData.diplomaYear.trim() !== 'NA' ||
-        formData.diplomaPercentage.trim() !== 'NA') &&
-      (
-        !formData.diplomaBoard.trim() ||
-        !formData.diplomaYear.trim() ||
-        !formData.diplomaPercentage.trim() ||
-        !files.diplomaMarks
-      )
+      formData.diplomaApplicable === "yes" && // Only validate if "Yes" is selected
+      (!formData.diplomaYear.trim() || 
+       !formData.diplomaPercentage.trim() || 
+       !files.diplomaMarks)
     ) {
-      setMessage(
-        "Please enter complete Diploma details (Board, Year, Percentage, and Upload Memo) or mark all as 'NA' if not applicable."
-      );
+      setMessage("Please enter complete Diploma details (Year, Percentage, and Upload Memo).");
       setIsSubmitting(false);
       return;
     }
