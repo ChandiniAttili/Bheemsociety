@@ -4,7 +4,7 @@ import AboutSection from "./components/AboutSection";
 import HeroSection from "./components/HeroSection";
 import ServicesSection from "./components/ServicesSection";
 import JobNotifications from "./components/JobNotifications";
-import ApplicationForm from "./components/Booking";
+import ApplicationForm from "./components/ApplicationForm";
 
 export default function App() {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
@@ -156,6 +156,14 @@ export default function App() {
             {/* Regular Sections to display when form is hidden */}
             <ServicesSection />
             <JobNotifications />
+           {/* Application Section */}
+      <section id="apply" className="py-20 bg-gray-100">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Apply Now</h2>
+          <ApplicationForm />
+        </div>
+      </section>
+
           </>
         )}
 

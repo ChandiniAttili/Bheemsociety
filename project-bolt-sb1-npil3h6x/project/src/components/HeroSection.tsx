@@ -87,25 +87,25 @@ const HeroSection: React.FC<JobsSectionProps> = ({ onApplyClick }) => {
                   <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
                     We are your trusted partner for facility management and hiring services. We provide and hire skilled workers, including security staff, bodyguards, salespeople, cashiers, and maintenance teams. Count on us for reliable services that ensure safety, efficiency, and smooth operations for businesses and individuals.
                   </p>
-                  {/* Hero Buttons */}
-                  <div className="mt-5 sm:mt-8 sm:flex sm:flex-col sm:items-center lg:items-start lg:flex-row lg:justify-start">
-                    <div className="rounded-md shadow mb-4 lg:mb-0">
-                      <a
-                        href="#apply"
-                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
-                      >
-                        Apply Now
-                      </a>
-                    </div>
-                    <div className="rounded-md shadow lg:ml-4">
-                      <a
-                        href="#jobs"
-                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-700 hover:bg-blue-800 md:py-4 md:text-lg md:px-10"
-                      >
-                        View Jobs
-                      </a>
-                    </div>
-                  </div>
+                  {/* Apply Now and View Jobs Buttons */}
+                                <div className="mt-5 sm:mt-8 sm:flex sm:flex-col sm:items-center lg:items-start lg:flex-row lg:justify-start">
+                                  <div className="rounded-md shadow mb-4 lg:mb-0">
+                                    <a
+                                      href="#apply"
+                                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
+                                    >
+                                      Apply Now
+                                    </a>
+                                  </div>
+                                  <div className="rounded-md shadow lg:ml-4">
+                                    <a
+                                      href="#jobs"
+                                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-700 hover:bg-blue-800 md:py-4 md:text-lg md:px-10"
+                                    >
+                                      View Jobs
+                                    </a>
+                                  </div>
+                                </div>
                   {/* Hero Additional Text */}
                   <div className="mt-10 sm:mt-12">
                     <h2 className="text-3xl font-bold text-green-600">

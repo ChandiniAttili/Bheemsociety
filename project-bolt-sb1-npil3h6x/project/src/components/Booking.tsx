@@ -35,6 +35,11 @@ interface FormData {
   graduationBoard: string;
   graduationYear: string;
   diplomaApplicable:string;
+  graduateApplicable:string;
+  graduateBoard:string;
+  graduateYear:string;
+  graduateMarks:string;
+  graduatePercentage:string;
   graduationPercentage: string;
 }
 
@@ -44,6 +49,7 @@ interface FileData {
   interMarks: File | null;
   diplomaMarks: File | null;
   degreeMarks: File | null;
+  graduateMarks:File | null;
 }
 
 interface ApplicationFormProps {
@@ -79,9 +85,14 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     diplomaApplicable:'',
     diplomaBoard: '',
     diplomaYear: '',
+    graduateMarks:'',
     diplomaPercentage: '',
     graduationBoard: '',
     graduationYear: '',
+    graduateApplicable:'',
+    graduateBoard:'',
+    graduateYear:'',
+    graduatePercentage:'',
     graduationPercentage: '',
   });
 
@@ -91,6 +102,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     interMarks: null,
     diplomaMarks: null,
     degreeMarks: null,
+    graduateMarks:null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -115,7 +127,6 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       }));
     }
   };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -141,6 +152,18 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
        !files.diplomaMarks)
     ) {
       setMessage("Please enter complete Diploma details (Year, Percentage, and Upload Memo).");
+      setIsSubmitting(false);
+      return;
+    }
+  
+    // ✅ Validation for Graduation
+    if (
+      formData.graduateApplicable === "yes" && // Only validate if "Yes" is selected
+      (!formData.graduateYear.trim() || 
+       !formData.graduatePercentage.trim() || 
+       !files.graduateMarks)
+    ) {
+      setMessage("Please enter complete Graduation details (Year, Percentage, and Upload Memo).");
       setIsSubmitting(false);
       return;
     }
@@ -711,66 +734,92 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
 </div>
 
 
-          {/* Graduation */}
-          <div>
-            <h3 className="text-lg font-medium mb-3">Graduation</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  University
-                </label>
-                <input
-                  type="text"
-                  name="graduationBoard"
-                  value={formData.graduationBoard}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Year
-                </label>
-                <input
-                  type="text"
-                  name="graduationYear"
-                  value={formData.graduationYear}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  pattern="[0-9]{4}"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Percentage
-                </label>
-                <input
-                  type="number"
-                  name="graduationPercentage"
-                  value={formData.graduationPercentage}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                />
-              </div>
-              <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Upload Degree Certificate
-                </label>
-                <input
-                  type="file"
-                  name="degreeMarks"
-                  onChange={handleFileChange}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="mt-1 block w-full"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+          
+{/* Graduation*/}
+<div className="mb-6">
+  <h3 className="text-lg font-medium mb-3">Graduation</h3>
 
+  {/* Yes/No Selection */}
+  <div className="mb-3">
+    <label className="block text-sm font-medium text-gray-700">Did you complete a Graduation?</label>
+    <div className="flex space-x-4 mt-1">
+      <label>
+        <input
+          type="radio"
+          name="graduateApplicable"
+          value="yes"
+          checked={formData.graduateApplicable === "yes"}
+          onChange={handleInputChange}
+          className="mr-2"
+        />
+        Yes
+      </label>
+      <label>
+        <input
+          type="radio"
+          name="graduateApplicable"
+          value="no"
+          checked={formData.graduateApplicable === "no"}
+          onChange={handleInputChange}
+          className="mr-2"
+        />
+        No
+      </label>
+    </div>
+  </div>
+
+  {/* Diploma Fields - Only shown if "Yes" is selected */}
+  {formData.graduateApplicable === "yes" && (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Board
+                </label>
+                <input
+                  type="text"
+                  name="graduateBoard"
+                  value={formData.graduateBoard}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Year</label>
+        <input
+          type="number"
+          name="graduateYear"
+          value={formData.graduateYear}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Percentage</label>
+        <input
+          type="number"
+          name="graduatePercentage"
+          value={formData.graduatePercentage}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="md:col-span-3">
+        <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
+        <input
+          type="file"
+          name="graduateMarks"
+          onChange={handleFileChange}
+          accept=".pdf,.jpg,.jpeg,.png"
+          className="mt-1 block w-full"
+        />
+      </div>
+    </div>
+  )}
+</div>
+</div>
         {/* Photo Upload */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <h2 className="text-xl font-semibold mb-4">Photo Upload</h2>
