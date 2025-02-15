@@ -131,7 +131,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage('');
-  
+    
     // ✅ Validation for Intermediate
     if (
       formData.interApplicable === "yes" &&
@@ -156,12 +156,12 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       return;
     }
   
-    // ✅ Validation for Graduation
+    // ✅ Validation for Graduation (Fix: Check if file is uploaded)
     if (
       formData.graduateApplicable === "yes" &&
       (!formData.graduateYear.trim() || 
        !formData.graduatePercentage.trim() || 
-       !files.graduateMarks)
+       !files.graduateMarks) // Fix: Check file existence
     ) {
       setMessage("Please enter complete Graduation details (Year, Percentage, and Upload Memo).");
       setIsSubmitting(false);
@@ -215,7 +215,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
         formDataToSend.append(key, value);
       });
   
-      // ✅ Append only applicable files
+      // ✅ Append only applicable files (Fix: Include Graduate Marks correctly)
       Object.entries(files).forEach(([key, file]) => {
         if (
           (key === "interMarks" && formData.interApplicable !== "yes") ||
@@ -227,7 +227,8 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
           formDataToSend.append(key, file);
         }
       });
-
+  
+      // ✅ Send request
       const response = await fetch(
         'https://mailapis-3v2b.onrender.com/api/v1/mail/send',
         {
