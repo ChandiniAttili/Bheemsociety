@@ -1,4 +1,5 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+
+  import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { Send } from 'lucide-react';
 
 interface FormData {
@@ -22,14 +23,18 @@ interface FormData {
   tenthBoard: string;
   tenthYear: string;
   tenthPercentage: string;
+  hasIntermediate: string; // Yes or No
   interBoard: string;
+  interApplicable:string,
   interYear: string;
   interPercentage: string;
+  hasDiploma: string; // Yes or No
   diplomaBoard: string;
   diplomaYear: string;
   diplomaPercentage: string;
   graduationBoard: string;
   graduationYear: string;
+  diplomaApplicable:string;
   graduationPercentage: string;
 }
 
@@ -65,14 +70,16 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     tenthBoard: '',
     tenthYear: '',
     tenthPercentage: '',
-    // Default Intermediate values set to "NA"
-    interBoard: 'NA',
-    interYear: 'NA',
-    interPercentage: 'NA',
-    // Default Diploma values set to "NA"
-    diplomaBoard: 'NA',
-    diplomaYear: 'NA',
-    diplomaPercentage: 'NA',
+    hasIntermediate: 'No',
+    interBoard: '',
+    interYear: '',
+    interApplicable:'',
+    interPercentage: '',
+    hasDiploma: 'No',
+    diplomaApplicable:'',
+    diplomaBoard: '',
+    diplomaYear: '',
+    diplomaPercentage: '',
     graduationBoard: '',
     graduationYear: '',
     graduationPercentage: '',
@@ -85,7 +92,6 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     diplomaMarks: null,
     degreeMarks: null,
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [message, setMessage] = useState('');
@@ -548,11 +554,43 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
             </div>
           </div>
 
-          {/* Intermediate */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-3">Intermediate</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
+         {/* Intermediate */}
+<div className="mb-6">
+  <h3 className="text-lg font-medium mb-3">Intermediate</h3>
+
+  {/* Yes/No Selection */}
+  <div className="mb-3">
+    <label className="block text-sm font-medium text-gray-700">Did you complete Intermediate?</label>
+    <div className="flex space-x-4 mt-1">
+      <label>
+        <input
+          type="radio"
+          name="interApplicable"
+          value="yes"
+          checked={formData.interApplicable === "yes"}
+          onChange={handleInputChange}
+          className="mr-2"
+        />
+        Yes
+      </label>
+      <label>
+        <input
+          type="radio"
+          name="interApplicable"
+          value="no"
+          checked={formData.interApplicable === "no"}
+          onChange={handleInputChange}
+          className="mr-2"
+        />
+        No
+      </label>
+    </div>
+  </div>
+
+  {/* Intermediate Fields - Only shown if "Yes" is selected */}
+  {formData.interApplicable === "yes" && (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Board
                 </label>
@@ -561,59 +599,83 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
                   name="interBoard"
                   value={formData.interBoard}
                   onChange={handleInputChange}
-                  // Not forcing required since "NA" is acceptable
+                  required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Year
-                </label>
-                <input
-                  type="text"
-                  name="interYear"
-                  value={formData.interYear}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  pattern="[0-9]{4}|NA"
-                  title="Enter a 4-digit year or NA"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Percentage
-                </label>
-                <input
-                  type="number"
-                  name="interPercentage"
-                  value={formData.interPercentage}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                />
-              </div>
-              <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Upload Memo
-                </label>
-                <input
-                  type="file"
-                  name="interMarks"
-                  onChange={handleFileChange}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="mt-1 block w-full"
-                />
-              </div>
-            </div>
-          </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Year</label>
+        <input
+          type="number"
+          name="interYear"
+          value={formData.interYear}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
 
-          {/* Diploma */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-3">Diploma</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Percentage</label>
+        <input
+          type="number"
+          name="interPercentage"
+          value={formData.interPercentage}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="md:col-span-3">
+        <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
+        <input
+          type="file"
+          name="interMarks"
+          onChange={handleFileChange}
+          accept=".pdf,.jpg,.jpeg,.png"
+          className="mt-1 block w-full"
+        />
+      </div>
+    </div>
+  )}
+</div>
+
+{/* Diploma */}
+<div className="mb-6">
+  <h3 className="text-lg font-medium mb-3">Diploma</h3>
+
+  {/* Yes/No Selection */}
+  <div className="mb-3">
+    <label className="block text-sm font-medium text-gray-700">Did you complete a Diploma?</label>
+    <div className="flex space-x-4 mt-1">
+      <label>
+        <input
+          type="radio"
+          name="diplomaApplicable"
+          value="yes"
+          checked={formData.diplomaApplicable === "yes"}
+          onChange={handleInputChange}
+          className="mr-2"
+        />
+        Yes
+      </label>
+      <label>
+        <input
+          type="radio"
+          name="diplomaApplicable"
+          value="no"
+          checked={formData.diplomaApplicable === "no"}
+          onChange={handleInputChange}
+          className="mr-2"
+        />
+        No
+      </label>
+    </div>
+  </div>
+
+  {/* Diploma Fields - Only shown if "Yes" is selected */}
+  {formData.diplomaApplicable === "yes" && (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Board
                 </label>
@@ -622,52 +684,46 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
                   name="diplomaBoard"
                   value={formData.diplomaBoard}
                   onChange={handleInputChange}
+                  required
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Year
-                </label>
-                <input
-                  type="text"
-                  name="diplomaYear"
-                  value={formData.diplomaYear}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  pattern="[0-9]{4}|NA"
-                  title="Enter a 4-digit year or NA"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Percentage
-                </label>
-                <input
-                  type="number"
-                  name="diplomaPercentage"
-                  value={formData.diplomaPercentage}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                />
-              </div>
-              <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Upload Memo
-                </label>
-                <input
-                  type="file"
-                  name="diplomaMarks"
-                  onChange={handleFileChange}
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="mt-1 block w-full"
-                />
-              </div>
-            </div>
-          </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Year</label>
+        <input
+          type="number"
+          name="diplomaYear"
+          value={formData.diplomaYear}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Percentage</label>
+        <input
+          type="number"
+          name="diplomaPercentage"
+          value={formData.diplomaPercentage}
+          onChange={handleInputChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="md:col-span-3">
+        <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
+        <input
+          type="file"
+          name="diplomaMarks"
+          onChange={handleFileChange}
+          accept=".pdf,.jpg,.jpeg,.png"
+          className="mt-1 block w-full"
+        />
+      </div>
+    </div>
+  )}
+</div>
+
 
           {/* Graduation */}
           <div>
