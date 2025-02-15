@@ -155,13 +155,15 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       setIsSubmitting(false);
       return;
     }
+    console.log("Submitting Form Data: ", formData);
+    console.log("Submitting Files: ", files);
   
-    // ✅ Validation for Graduation (Fix: Check if file is uploaded)
+    // ✅ Validation for Graduation
     if (
       formData.graduateApplicable === "yes" &&
       (!formData.graduateYear.trim() || 
        !formData.graduatePercentage.trim() || 
-       !files.graduateMarks) // Fix: Check file existence
+       !files.graduateMarks) // Fix: Ensure file exists
     ) {
       setMessage("Please enter complete Graduation details (Year, Percentage, and Upload Memo).");
       setIsSubmitting(false);
@@ -171,37 +173,37 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     try {
       const formDataToSend = new FormData();
   
-      // ✅ Construct email body dynamically
-      const emailBody = `
-  **Personal Information**
-  - First Name: ${formData.firstName}
-  - Last Name: ${formData.lastName}
-  - Father's Name: ${formData.fatherName}
-  - Date of Birth: ${formData.dateOfBirth}
-  - Gender: ${formData.gender}
-  - Category: ${formData.category}
-  - Handicapped: ${formData.handicapped}
-  - Aadhar Number: ${formData.aadharNumber}
-  
-  **Contact Information**
-  - Email: ${formData.email}
-  - Phone: ${formData.phone}
-  - Address: ${formData.address}, ${formData.city}, ${formData.pincode}
-  
-  **Educational Information**
-  - 10th: ${formData.tenthBoard}, ${formData.tenthYear}, ${formData.tenthPercentage}%
-  ${formData.interApplicable === "yes" ? `- Intermediate: ${formData.interBoard}, ${formData.interYear}, ${formData.interPercentage}%` : ""}
-  ${formData.diplomaApplicable === "yes" ? `- Diploma: ${formData.diplomaBoard}, ${formData.diplomaYear}, ${formData.diplomaPercentage}%` : ""}
-  ${formData.graduateApplicable === "yes" ? `- Graduation: ${formData.graduationBoard}, ${formData.graduationYear}, ${formData.graduationPercentage}%` : ""}
-  
-  **Professional Information**
-  - Position Applied For: ${formData.position}
-  - Experience: ${formData.experience}
-      `;
-  
       // ✅ Append email details
       formDataToSend.append('to', 'bhemsociety@gmail.com');
       formDataToSend.append('subject', `Application for ${formData.position}`);
+      
+      const emailBody = `
+      **Personal Information**
+      - First Name: ${formData.firstName}
+      - Last Name: ${formData.lastName}
+      - Father's Name: ${formData.fatherName}
+      - Date of Birth: ${formData.dateOfBirth}
+      - Gender: ${formData.gender}
+      - Category: ${formData.category}
+      - Handicapped: ${formData.handicapped}
+      - Aadhar Number: ${formData.aadharNumber}
+  
+      **Contact Information**
+      - Email: ${formData.email}
+      - Phone: ${formData.phone}
+      - Address: ${formData.address}, ${formData.city}, ${formData.pincode}
+  
+      **Educational Information**
+      - 10th: ${formData.tenthBoard}, ${formData.tenthYear}, ${formData.tenthPercentage}%
+      ${formData.interApplicable === "yes" ? `- Intermediate: ${formData.interBoard}, ${formData.interYear}, ${formData.interPercentage}%` : ""}
+      ${formData.diplomaApplicable === "yes" ? `- Diploma: ${formData.diplomaBoard}, ${formData.diplomaYear}, ${formData.diplomaPercentage}%` : ""}
+      ${formData.graduateApplicable === "yes" ? `- Graduation: ${formData.graduationBoard}, ${formData.graduationYear}, ${formData.graduationPercentage}%` : ""}
+  
+      **Professional Information**
+      - Position Applied For: ${formData.position}
+      - Experience: ${formData.experience}
+      `;
+  
       formDataToSend.append('body', emailBody);
   
       // ✅ Append only applicable text fields
@@ -215,7 +217,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
         formDataToSend.append(key, value);
       });
   
-      // ✅ Append only applicable files (Fix: Include Graduate Marks correctly)
+      // ✅ Append only applicable files
       Object.entries(files).forEach(([key, file]) => {
         if (
           (key === "interMarks" && formData.interApplicable !== "yes") ||
@@ -224,9 +226,16 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
         ) return;
   
         if (file) {
+          console.log(`Appending File: ${key}`, file);
           formDataToSend.append(key, file);
         }
       });
+  
+      // ✅ Check if graduation file is appended
+      if (formData.graduateApplicable === "yes" && files.graduateMarks) {
+        console.log("Appending Graduation Marks File: ", files.graduateMarks);
+        formDataToSend.append("graduateMarks", files.graduateMarks);
+      }
   
       // ✅ Send request
       const response = await fetch(
@@ -236,7 +245,6 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
           body: formDataToSend,
         }
       );
-
       if (!response.ok) {
         throw new Error('Submission failed');
       }
