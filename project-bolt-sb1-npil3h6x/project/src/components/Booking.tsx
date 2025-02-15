@@ -36,6 +36,7 @@ interface FormData {
   graduationYear: string;
   diplomaApplicable:string;
   graduateApplicable:string;
+  hasGraduation:string;
   graduateBoard:string;
   graduateYear:string;
   graduateMarks:string;
@@ -88,6 +89,7 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     graduateMarks:'',
     diplomaPercentage: '',
     graduationBoard: '',
+    hasGraduation: 'No',
     graduationYear: '',
     graduateApplicable:'',
     graduateBoard:'',
