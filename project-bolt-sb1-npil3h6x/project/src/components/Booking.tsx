@@ -1,5 +1,4 @@
-
-  import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { Send } from 'lucide-react';
 
 interface FormData {
@@ -23,25 +22,18 @@ interface FormData {
   tenthBoard: string;
   tenthYear: string;
   tenthPercentage: string;
-  hasIntermediate: string; // Yes or No
+  interApplicable: string;
   interBoard: string;
-  interApplicable:string,
   interYear: string;
   interPercentage: string;
-  hasDiploma: string; // Yes or No
+  diplomaApplicable: string;
   diplomaBoard: string;
   diplomaYear: string;
   diplomaPercentage: string;
-  graduationBoard: string;
-  graduationYear: string;
-  diplomaApplicable:string;
-  graduateApplicable:string;
-  hasGraduation:string;
-  graduateBoard:string;
-  graduateYear:string;
-  graduateMarks:string;
-  graduatePercentage:string;
-  graduationPercentage: string;
+  graduateApplicable: string;
+  graduateBoard: string;
+  graduateYear: string;
+  graduatePercentage: string;
 }
 
 interface FileData {
@@ -49,8 +41,7 @@ interface FileData {
   tenthMarks: File | null;
   interMarks: File | null;
   diplomaMarks: File | null;
-  degreeMarks: File | null;
-  graduateMarks:File | null;
+  graduateMarks: File | null;
 }
 
 interface ApplicationFormProps {
@@ -77,25 +68,18 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     tenthBoard: '',
     tenthYear: '',
     tenthPercentage: '',
-    hasIntermediate: 'No',
+    interApplicable: 'no',
     interBoard: '',
     interYear: '',
-    interApplicable:'',
     interPercentage: '',
-    hasDiploma: 'No',
-    diplomaApplicable:'',
+    diplomaApplicable: 'no',
     diplomaBoard: '',
     diplomaYear: '',
-    graduateMarks:'',
     diplomaPercentage: '',
-    graduationBoard: '',
-    hasGraduation: 'No',
-    graduationYear: '',
-    graduateApplicable:'',
-    graduateBoard:'',
-    graduateYear:'',
-    graduatePercentage:'',
-    graduationPercentage: '',
+    graduateApplicable: 'no',
+    graduateBoard: '',
+    graduateYear: '',
+    graduatePercentage: ''
   });
 
   const [files, setFiles] = useState<FileData>({
@@ -103,9 +87,9 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     tenthMarks: null,
     interMarks: null,
     diplomaMarks: null,
-    degreeMarks: null,
-    graduateMarks:null,
+    graduateMarks: null
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [message, setMessage] = useState('');
@@ -129,12 +113,13 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       }));
     }
   };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage('');
-    
-    // ✅ Validation for Intermediate
+
+    // Validation for Intermediate
     if (
       formData.interApplicable === "yes" &&
       (!formData.interYear.trim() || 
@@ -145,8 +130,8 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       setIsSubmitting(false);
       return;
     }
-  
-    // ✅ Validation for Diploma
+
+    // Validation for Diploma
     if (
       formData.diplomaApplicable === "yes" &&
       (!formData.diplomaYear.trim() || 
@@ -157,89 +142,76 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
       setIsSubmitting(false);
       return;
     }
-    console.log("Submitting Form Data: ", formData);
-    console.log("Submitting Files: ", files);
-  
-    // ✅ Validation for Graduation
+
+    // Validation for Graduation
     if (
       formData.graduateApplicable === "yes" &&
       (!formData.graduateYear.trim() || 
        !formData.graduatePercentage.trim() || 
-       !files.graduateMarks) // Fix: Ensure file exists
+       !files.graduateMarks)
     ) {
       setMessage("Please enter complete Graduation details (Year, Percentage, and Upload Memo).");
       setIsSubmitting(false);
       return;
     }
-  
+
     try {
       const formDataToSend = new FormData();
-  
-      // ✅ Append email details
+
+      // Construct email body with all educational details
+      const emailBody = `
+**Personal Information**
+- First Name: ${formData.firstName}
+- Last Name: ${formData.lastName}
+- Father's Name: ${formData.fatherName}
+- Date of Birth: ${formData.dateOfBirth}
+- Gender: ${formData.gender}
+- Category: ${formData.category}
+- Handicapped: ${formData.handicapped}
+- Aadhar Number: ${formData.aadharNumber}
+
+**Contact Information**
+- Email: ${formData.email}
+- Phone: ${formData.phone}
+- Address: ${formData.address}, ${formData.city}, ${formData.pincode}
+
+**Educational Information**
+- 10th: ${formData.tenthBoard}, ${formData.tenthYear}, ${formData.tenthPercentage}%
+
+${formData.interApplicable === 'yes' ? 
+`- Intermediate: ${formData.interBoard}, ${formData.interYear}, ${formData.interPercentage}%` : 
+'- Intermediate: Not Applicable'}
+
+${formData.diplomaApplicable === 'yes' ? 
+`- Diploma: ${formData.diplomaBoard}, ${formData.diplomaYear}, ${formData.diplomaPercentage}%` : 
+'- Diploma: Not Applicable'}
+
+${formData.graduateApplicable === 'yes' ? 
+`- Graduation: ${formData.graduateBoard}, ${formData.graduateYear}, ${formData.graduatePercentage}%` : 
+'- Graduation: Not Applicable'}
+
+**Professional Information**
+- Position Applied For: ${formData.position}
+- Experience: ${formData.experience}
+      `;
+
+      // Append email details
       formDataToSend.append('to', 'bhemsociety@gmail.com');
       formDataToSend.append('subject', `Application for ${formData.position}`);
-      
-      const emailBody = `
-      **Personal Information**
-      - First Name: ${formData.firstName}
-      - Last Name: ${formData.lastName}
-      - Father's Name: ${formData.fatherName}
-      - Date of Birth: ${formData.dateOfBirth}
-      - Gender: ${formData.gender}
-      - Category: ${formData.category}
-      - Handicapped: ${formData.handicapped}
-      - Aadhar Number: ${formData.aadharNumber}
-  
-      **Contact Information**
-      - Email: ${formData.email}
-      - Phone: ${formData.phone}
-      - Address: ${formData.address}, ${formData.city}, ${formData.pincode}
-  
-      **Educational Information**
-      - 10th: ${formData.tenthBoard}, ${formData.tenthYear}, ${formData.tenthPercentage}%
-      ${formData.interApplicable === "yes" ? `- Intermediate: ${formData.interBoard}, ${formData.interYear}, ${formData.interPercentage}%` : ""}
-      ${formData.diplomaApplicable === "yes" ? `- Diploma: ${formData.diplomaBoard}, ${formData.diplomaYear}, ${formData.diplomaPercentage}%` : ""}
-      ${formData.graduateApplicable === "yes" ? `- Graduation: ${formData.graduationBoard}, ${formData.graduationYear}, ${formData.graduationPercentage}%` : ""}
-  
-      **Professional Information**
-      - Position Applied For: ${formData.position}
-      - Experience: ${formData.experience}
-      `;
-  
       formDataToSend.append('body', emailBody);
-  
-      // ✅ Append only applicable text fields
+
+      // Append all text fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (
-          (key.startsWith("inter") && formData.interApplicable !== "yes") ||
-          (key.startsWith("diploma") && formData.diplomaApplicable !== "yes") ||
-          (key.startsWith("graduate") && formData.graduateApplicable !== "yes")
-        ) return;
-  
         formDataToSend.append(key, value);
       });
-  
-      // ✅ Append only applicable files
+
+      // Append all files
       Object.entries(files).forEach(([key, file]) => {
-        if (
-          (key === "interMarks" && formData.interApplicable !== "yes") ||
-          (key === "diplomaMarks" && formData.diplomaApplicable !== "yes") ||
-          (key === "graduateMarks" && formData.graduateApplicable !== "yes")
-        ) return;
-  
         if (file) {
-          console.log(`Appending File: ${key}`, file);
           formDataToSend.append(key, file);
         }
       });
-  
-      // ✅ Check if graduation file is appended
-      if (formData.graduateApplicable === "yes" && files.graduateMarks) {
-        console.log("Appending Graduation Marks File: ", files.graduateMarks);
-        formDataToSend.append("graduateMarks", files.graduateMarks);
-      }
-  
-      // ✅ Send request
+
       const response = await fetch(
         'https://mailapis-3v2b.onrender.com/api/v1/mail/send',
         {
@@ -247,16 +219,16 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
           body: formDataToSend,
         }
       );
+
       if (!response.ok) {
         throw new Error('Submission failed');
       }
-      setMessage('Failed to submit application. Please try again.');
 
+      setMessage('Application submitted successfully!');
       setIsSubmitted(true);
       onSubmitSuccess();
     } catch (error) {
-      setMessage('Application submitted successfully!');
-
+      setMessage('Failed to submit application. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -587,263 +559,271 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
             </div>
           </div>
 
-         {/* Intermediate */}
-<div className="mb-6">
-  <h3 className="text-lg font-medium mb-3">Intermediate</h3>
-
-  {/* Yes/No Selection */}
-  <div className="mb-3">
-    <label className="block text-sm font-medium text-gray-700">Did you complete Intermediate?</label>
-    <div className="flex space-x-4 mt-1">
-      <label>
-        <input
-          type="radio"
-          name="interApplicable"
-          value="yes"
-          checked={formData.interApplicable === "yes"}
-          onChange={handleInputChange}
-          className="mr-2"
-        />
-        Yes
-      </label>
-      <label>
-        <input
-          type="radio"
-          name="interApplicable"
-          value="no"
-          checked={formData.interApplicable === "no"}
-          onChange={handleInputChange}
-          className="mr-2"
-        />
-        No
-      </label>
-    </div>
-  </div>
-
-  {/* Intermediate Fields - Only shown if "Yes" is selected */}
-  {formData.interApplicable === "yes" && (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Board
+          {/* Intermediate */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Intermediate</h3>
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Did you complete Intermediate?
+              </label>
+              <div className="flex space-x-4 mt-1">
+                <label>
+                  <input
+                    type="radio"
+                    name="interApplicable"
+                    value="yes"
+                    checked={formData.interApplicable === "yes"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  Yes
                 </label>
-                <input
-                  type="text"
-                  name="interBoard"
-                  value={formData.interBoard}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Year</label>
-        <input
-          type="number"
-          name="interYear"
-          value={formData.interYear}
-          onChange={handleInputChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Percentage</label>
-        <input
-          type="number"
-          name="interPercentage"
-          value={formData.interPercentage}
-          onChange={handleInputChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-      </div>
-
-      <div className="md:col-span-3">
-        <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
-        <input
-          type="file"
-          name="interMarks"
-          onChange={handleFileChange}
-          accept=".pdf,.jpg,.jpeg,.png"
-          className="mt-1 block w-full"
-        />
-      </div>
-    </div>
-  )}
-</div>
-
-{/* Diploma */}
-<div className="mb-6">
-  <h3 className="text-lg font-medium mb-3">Diploma</h3>
-
-  {/* Yes/No Selection */}
-  <div className="mb-3">
-    <label className="block text-sm font-medium text-gray-700">Did you complete a Diploma?</label>
-    <div className="flex space-x-4 mt-1">
-      <label>
-        <input
-          type="radio"
-          name="diplomaApplicable"
-          value="yes"
-          checked={formData.diplomaApplicable === "yes"}
-          onChange={handleInputChange}
-          className="mr-2"
-        />
-        Yes
-      </label>
-      <label>
-        <input
-          type="radio"
-          name="diplomaApplicable"
-          value="no"
-          checked={formData.diplomaApplicable === "no"}
-          onChange={handleInputChange}
-          className="mr-2"
-        />
-        No
-      </label>
-    </div>
-  </div>
-
-  {/* Diploma Fields - Only shown if "Yes" is selected */}
-  {formData.diplomaApplicable === "yes" && (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Board
+                <label>
+                  <input
+                    type="radio"
+                    name="interApplicable"
+                    value="no"
+                    checked={formData.interApplicable === "no"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  No
                 </label>
-                <input
-                  type="text"
-                  name="diplomaBoard"
-                  value={formData.diplomaBoard}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
               </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Year</label>
-        <input
-          type="number"
-          name="diplomaYear"
-          value={formData.diplomaYear}
-          onChange={handleInputChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-      </div>
+            </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Percentage</label>
-        <input
-          type="number"
-          name="diplomaPercentage"
-          value={formData.diplomaPercentage}
-          onChange={handleInputChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-      </div>
+            {formData.interApplicable === "yes" && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Board
+                  </label>
+                  <input
+                    type="text"
+                    name="interBoard"
+                    value={formData.interBoard}
+                    onChange={handleInputChange}
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Year
+                  </label>
+                  <input
+                    type="number"
+                    name="interYear"
+                    value={formData.interYear}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Percentage
+                  </label>
+                  <input
+                    type="number"
+                    name="interPercentage"
+                    value={formData.interPercentage}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Upload Memo
+                  </label>
+                  <input
+                    type="file"
+                    name="interMarks"
+                    onChange={handleFileChange}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="mt-1 block w-full"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
-      <div className="md:col-span-3">
-        <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
-        <input
-          type="file"
-          name="diplomaMarks"
-          onChange={handleFileChange}
-          accept=".pdf,.jpg,.jpeg,.png"
-          className="mt-1 block w-full"
-        />
-      </div>
-    </div>
-  )}
-</div>
-
-
-          
-{/* Graduation*/}
-<div className="mb-6">
-  <h3 className="text-lg font-medium mb-3">Graduation</h3>
-
-  {/* Yes/No Selection */}
-  <div className="mb-3">
-    <label className="block text-sm font-medium text-gray-700">Did you complete a Graduation?</label>
-    <div className="flex space-x-4 mt-1">
-      <label>
-        <input
-          type="radio"
-          name="graduateApplicable"
-          value="yes"
-          checked={formData.graduateApplicable === "yes"}
-          onChange={handleInputChange}
-          className="mr-2"
-        />
-        Yes
-      </label>
-      <label>
-        <input
-          type="radio"
-          name="graduateApplicable"
-          value="no"
-          checked={formData.graduateApplicable === "no"}
-          onChange={handleInputChange}
-          className="mr-2"
-        />
-        No
-      </label>
-    </div>
-  </div>
-
-  {/* Diploma Fields - Only shown if "Yes" is selected */}
-  {formData.graduateApplicable === "yes" && (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Board
+          {/* Diploma */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Diploma</h3>
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Did you complete a Diploma?
+              </label>
+              <div className="flex space-x-4 mt-1">
+                <label>
+                  <input
+                    type="radio"
+                    name="diplomaApplicable"
+                    value="yes"
+                    checked={formData.diplomaApplicable === "yes"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  Yes
                 </label>
-                <input
-                  type="text"
-                  name="graduateBoard"
-                  value={formData.graduateBoard}
-                  onChange={handleInputChange}
-                  required
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
+                <label>
+                  <input
+                    type="radio"
+                    name="diplomaApplicable"
+                    value="no"
+                    checked={formData.diplomaApplicable === "no"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  No
+                </label>
               </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Year</label>
-        <input
-          type="number"
-          name="graduateYear"
-          value={formData.graduateYear}
-          onChange={handleInputChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-      </div>
+            </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Percentage</label>
-        <input
-          type="number"
-          name="graduatePercentage"
-          value={formData.graduatePercentage}
-          onChange={handleInputChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-      </div>
+            {formData.diplomaApplicable === "yes" && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Board
+                  </label>
+                  <input
+                    type="text"
+                    name="diplomaBoard"
+                    value={formData.diplomaBoard}
+                    onChange={handleInputChange}
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Year
+                  </label>
+                  <input
+                    type="number"
+                    name="diplomaYear"
+                    value={formData.diplomaYear}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Percentage
+                  </label>
+                  <input
+                    type="number"
+                    name="diplomaPercentage"
+                    value={formData.diplomaPercentage}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Upload Memo
+                  </label>
+                  <input
+                    type="file"
+                    name="diplomaMarks"
+                    onChange={handleFileChange}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="mt-1 block w-full"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
-      <div className="md:col-span-3">
-        <label className="block text-sm font-medium text-gray-700">Upload Memo</label>
-        <input
-          type="file"
-          name="graduateMarks"
-          onChange={handleFileChange}
-          accept=".pdf,.jpg,.jpeg,.png"
-          className="mt-1 block w-full"
-        />
-      </div>
-    </div>
-  )}
-</div>
-</div>
+          {/* Graduation */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Graduation</h3>
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Did you complete Graduation?
+              </label>
+              <div className="flex space-x-4 mt-1">
+                <label>
+                  <input
+                    type="radio"
+                    name="graduateApplicable"
+                    value="yes"
+                    checked={formData.graduateApplicable === "yes"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  Yes
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="graduateApplicable"
+                    value="no"
+                    checked={formData.graduateApplicable === "no"}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  No
+                </label>
+              </div>
+            </div>
+
+            {formData.graduateApplicable === "yes" && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Board/University
+                  </label>
+                  <input
+                    type="text"
+                    name="graduateBoard"
+                    value={formData.graduateBoard}
+                    onChange={handleInputChange}
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Year
+                  </label>
+                  <input
+                    type="number"
+                    name="graduateYear"
+                    value={formData.graduateYear}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Percentage
+                  </label>
+                  <input
+                    type="number"
+                    name="graduatePercentage"
+                    value={formData.graduatePercentage}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Upload Memo
+                  </label>
+                  <input
+                    type="file"
+                    name="graduateMarks"
+                    onChange={handleFileChange}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="mt-1 block w-full"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Photo Upload */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <h2 className="text-xl font-semibold mb-4">Photo Upload</h2>
@@ -876,8 +856,6 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
             <Send className="ml-2" size={18} />
           </button>
         </div>
-
-        {message && <p className="mt-4 text-center">{message}</p>}
       </form>
     </div>
   );
