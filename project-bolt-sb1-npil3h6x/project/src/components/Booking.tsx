@@ -114,148 +114,150 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
     }
   };
 
+  const validateFiles = () => {
+    if (!files.passportSizePhoto || !files.tenthMarks) {
+      throw new Error("Please upload passport photo and 10th marks memo.");
+    }
+
+    if (formData.interApplicable === "yes" && (!files.interMarks || !formData.interYear)) {
+      throw new Error("Please complete all Intermediate details including marks memo.");
+    }
+
+    if (formData.diplomaApplicable === "yes" && (!files.diplomaMarks || !formData.diplomaYear)) {
+      throw new Error("Please complete all Diploma details including marks memo.");
+    }
+
+    if (formData.graduateApplicable === "yes" && (!files.graduateMarks || !formData.graduateYear)) {
+      throw new Error("Please complete all Graduation details including marks memo.");
+    }
+  };
+
+  const createEducationSummary = () => {
+    return `
+**Educational Details**
+
+1. 10th Class
+- Board: ${formData.tenthBoard}
+- Year: ${formData.tenthYear}
+- Percentage: ${formData.tenthPercentage}%
+
+${formData.interApplicable === 'yes' ? `
+2. Intermediate
+- Board: ${formData.interBoard}
+- Year: ${formData.interYear}
+- Percentage: ${formData.interPercentage}%
+` : '2. Intermediate: Not Applicable'}
+
+${formData.diplomaApplicable === 'yes' ? `
+3. Diploma
+- Board: ${formData.diplomaBoard}
+- Year: ${formData.diplomaYear}
+- Percentage: ${formData.diplomaPercentage}%
+` : '3. Diploma: Not Applicable'}
+
+${formData.graduateApplicable === 'yes' ? `
+4. Graduation
+- University: ${formData.graduateBoard}
+- Year: ${formData.graduateYear}
+- Percentage: ${formData.graduatePercentage}%
+` : '4. Graduation: Not Applicable'}
+    `;
+  };
+
+  const createEmailBody = () => {
+    return `
+**Application for ${formData.position}**
+
+**Personal Information**
+- Name: ${formData.firstName} ${formData.lastName}
+- Father's Name: ${formData.fatherName}
+- Date of Birth: ${formData.dateOfBirth}
+- Gender: ${formData.gender}
+- Category: ${formData.category}
+- Handicapped: ${formData.handicapped}
+- Aadhar Number: ${formData.aadharNumber}
+
+**Contact Information**
+- Email: ${formData.email}
+- Phone: ${formData.phone}
+- Address: ${formData.address}
+- City: ${formData.city}
+- Pincode: ${formData.pincode}
+
+**Professional Information**
+- Position Applied For: ${formData.position}
+- Experience: ${formData.experience} years
+
+${createEducationSummary()}
+
+Note: Educational certificates and passport size photo are attached with this email.
+    `;
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage('');
-  
-    // Validation for required files
-    if (!files.passportSizePhoto || !files.tenthMarks) {
-      setMessage("Please upload passport photo and 10th marks memo.");
-      setIsSubmitting(false);
-      return;
-    }
-  
-    // Validation checks for optional education levels
-    if (formData.interApplicable === "yes" && (!files.interMarks || !formData.interYear)) {
-      setMessage("Please complete all Intermediate details including marks memo.");
-      setIsSubmitting(false);
-      return;
-    }
-  
-    if (formData.diplomaApplicable === "yes" && (!files.diplomaMarks || !formData.diplomaYear)) {
-      setMessage("Please complete all Diploma details including marks memo.");
-      setIsSubmitting(false);
-      return;
-    }
-  
-    if (formData.graduateApplicable === "yes" && (!files.graduateMarks || !formData.graduateYear)) {
-      setMessage("Please complete all Graduation details including marks memo.");
-      setIsSubmitting(false);
-      return;
-    }
-  
+
     try {
+      // Validate files
+      validateFiles();
+
       const formDataToSend = new FormData();
-  
-      // Create a detailed education summary
-      const educationSummary = `
-  **Educational Details**
-  
-  1. 10th Class
-  - Board: ${formData.tenthBoard}
-  - Year: ${formData.tenthYear}
-  - Percentage: ${formData.tenthPercentage}%
-  
-  ${formData.interApplicable === 'yes' ? `
-  2. Intermediate
-  - Board: ${formData.interBoard}
-  - Year: ${formData.interYear}
-  - Percentage: ${formData.interPercentage}%
-  ` : '2. Intermediate: Not Applicable'}
-  
-  ${formData.diplomaApplicable === 'yes' ? `
-  3. Diploma
-  - Board: ${formData.diplomaBoard}
-  - Year: ${formData.diplomaYear}
-  - Percentage: ${formData.diplomaPercentage}%
-  ` : '3. Diploma: Not Applicable'}
-  
-  ${formData.graduateApplicable === 'yes' ? `
-  4. Graduation
-  - University: ${formData.graduateBoard}
-  - Year: ${formData.graduateYear}
-  - Percentage: ${formData.graduatePercentage}%
-  ` : '4. Graduation: Not Applicable'}
-      `;
-  
-      // Construct full email body
-      const emailBody = `
-  **Application for ${formData.position}**
-  
-  **Personal Information**
-  - Name: ${formData.firstName} ${formData.lastName}
-  - Father's Name: ${formData.fatherName}
-  - Date of Birth: ${formData.dateOfBirth}
-  - Gender: ${formData.gender}
-  - Category: ${formData.category}
-  - Handicapped: ${formData.handicapped}
-  - Aadhar Number: ${formData.aadharNumber}
-  
-  **Contact Information**
-  - Email: ${formData.email}
-  - Phone: ${formData.phone}
-  - Address: ${formData.address}
-  - City: ${formData.city}
-  - Pincode: ${formData.pincode}
-  
-  **Professional Information**
-  - Position Applied For: ${formData.position}
-  - Experience: ${formData.experience} years
-  
-  ${educationSummary}
-  
-  Note: Educational certificates and passport size photo are attached with this email.
-      `;
-  
-      // Append email details
-      formDataToSend.append('to', 'bhemsociety@gmail.com');
-      formDataToSend.append('subject', `Job Application - ${formData.position} - ${formData.firstName} ${formData.lastName}`);
-      formDataToSend.append('body', emailBody);
-  
-      // Append all text fields
+
+      // Append form data
       Object.entries(formData).forEach(([key, value]) => {
         formDataToSend.append(key, value.toString());
       });
-  
-      // Append all files with specific names
+
+      // Append files
       if (files.passportSizePhoto) {
-        formDataToSend.append('passportSizePhoto', files.passportSizePhoto, 'passport_photo.' + files.passportSizePhoto.name.split('.').pop());
+        formDataToSend.append('passportSizePhoto', files.passportSizePhoto);
       }
+      
       if (files.tenthMarks) {
-        formDataToSend.append('tenthMarks', files.tenthMarks, '10th_marks.' + files.tenthMarks.name.split('.').pop());
+        formDataToSend.append('tenthMarks', files.tenthMarks);
       }
-      if (files.interMarks && formData.interApplicable === 'yes') {
-        formDataToSend.append('interMarks', files.interMarks, 'inter_marks.' + files.interMarks.name.split('.').pop());
+
+      if (formData.interApplicable === 'yes' && files.interMarks) {
+        formDataToSend.append('interMarks', files.interMarks);
       }
-      if (files.diplomaMarks && formData.diplomaApplicable === 'yes') {
-        formDataToSend.append('diplomaMarks', files.diplomaMarks, 'diploma_marks.' + files.diplomaMarks.name.split('.').pop());
+
+      if (formData.diplomaApplicable === 'yes' && files.diplomaMarks) {
+        formDataToSend.append('diplomaMarks', files.diplomaMarks);
       }
-      if (files.graduateMarks && formData.graduateApplicable === 'yes') {
-        formDataToSend.append('graduateMarks', files.graduateMarks, 'graduate_marks.' + files.graduateMarks.name.split('.').pop());
+
+      if (formData.graduateApplicable === 'yes' && files.graduateMarks) {
+        formDataToSend.append('graduateMarks', files.graduateMarks);
       }
-  
+
+      // Add email details
+      const emailBody = createEmailBody();
+      formDataToSend.append('to', 'bhemsociety@gmail.com');
+      formDataToSend.append('subject', `Job Application - ${formData.position} - ${formData.firstName} ${formData.lastName}`);
+      formDataToSend.append('body', emailBody);
+
       const response = await fetch('https://mailapis-3v2b.onrender.com/api/v1/mail/send', {
         method: 'POST',
         body: formDataToSend,
       });
-  
-      if (!response.ok) {
-        throw new Error('Submission failed');
-      }
-  
-      setIsSubmitted(true);
-      setMessage('Failed to submit application. Please try again.');
 
-      onSubmitSuccess();
-    } catch (error) {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Submission failed');
+      }
+
+      setIsSubmitted(true);
       setMessage('Application submitted successfully!');
+      onSubmitSuccess();
+
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Failed to submit application. Please try again.');
       console.error('Submission error:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="p-6 md:p-8">
       <div className="flex items-center justify-center mb-8">
