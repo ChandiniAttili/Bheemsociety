@@ -244,11 +244,12 @@ function ApplicationForm({ onSubmitSuccess }: ApplicationFormProps) {
         throw new Error('Submission failed');
       }
   
-      setMessage('Application submitted successfully!');
       setIsSubmitted(true);
+      setMessage('Failed to submit application. Please try again.');
+
       onSubmitSuccess();
     } catch (error) {
-      setMessage('Failed to submit application. Please try again.');
+      setMessage('Application submitted successfully!');
       console.error('Submission error:', error);
     } finally {
       setIsSubmitting(false);
