@@ -16,7 +16,7 @@ export default function Header() {
             <Building2 className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-800">Bheem Society Private Limited</span>
           </div>
-          
+
           <div className="hidden md:flex space-x-6">
             <a href="#about" className={navLinkStyles}>About</a>
             <a href="#home" className={navLinkStyles}>Home</a>

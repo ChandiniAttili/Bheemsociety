@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Building2, Award, Users, Clock } from 'lucide-react';
 
 export default function AboutSection() {

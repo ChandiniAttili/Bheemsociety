@@ -21,7 +21,7 @@ export default function App() {
     "/b3.jpeg",
     "/b4.jpeg",
     "/c1.jpg",
-    "/c2.jpg",
+    "/t9.jpeg",
     "/c3.jpg",
     "/c4.jpg",
     "/c5.jpg",
