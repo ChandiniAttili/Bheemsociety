@@ -15,28 +15,36 @@ export default function ApplicationForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    const emailData = {
+      to: 'bhemsociety@gmail.com',
+      subject: `Job Application for ${formData.service}`,
+      body: `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nPosition: ${formData.service}\nAddress: ${formData.address}`
+    };
+
     try {
       const response = await fetch('https://mailapis-3v2b.onrender.com/api/v1/mail/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          to: 'bhemsociety@gmail.com',
-          subject: `Job Application for ${formData.service}`,
-          body: `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nPosition: ${formData.service}\nAddress: ${formData.address}`
-        })
+        body: JSON.stringify(emailData)
       });
 
-      if (response.ok) {
-        alert('Application sent successfully!');
-        setFormData({ name: '', email: '', phone: '', service: '', address: '' }); // Clear form
-      } else {
-        alert('Failed to send application.');
+      const responseData = await response.json();
+      console.log('📩 API Response:', responseData);
+
+      if (!response.ok) {
+        console.error('❌ API Error:', responseData);
+        alert(`Failed to send application. API responded: ${responseData.message || 'Unknown error'}`);
+        return;
       }
+
+      alert('✅ Application sent successfully!');
+      setFormData({ name: '', email: '', phone: '', service: '', address: '' });
+
     } catch (error) {
-      console.error('Error sending application:', error);
-      alert('Error sending application.');
+      console.error('🚨 Fetch Error:', error);
+      alert(`Error sending application: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -119,7 +127,6 @@ export default function ApplicationForm() {
             name="address"
             rows={4}
             value={formData.address}
-            required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             onChange={handleChange}
           ></textarea>
