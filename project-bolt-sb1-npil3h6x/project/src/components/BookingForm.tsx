@@ -11,19 +11,35 @@ export default function ApplicationForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const subject = `Job Application for ${formData.service}`;
-    const body = `Name: ${formData.name}%0AEmail: ${formData.email}%0APhone: ${formData.phone}%0AService: ${formData.service}%0AAddress: ${formData.address}`;
-    const mailtoLink = `mailto:bhemsociety@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+    try {
+      const response = await fetch('https://mailapis-3v2b.onrender.com/api/v1/mail/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          to: 'bhemsociety@gmail.com',
+          subject: `Job Application for ${formData.service}`,
+          body: `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nPosition: ${formData.service}\nAddress: ${formData.address}`
+        })
+      });
 
-    // Delay execution slightly to ensure UI updates properly
-    setTimeout(() => {
-      window.location.href = mailtoLink;
+      if (response.ok) {
+        alert('Application sent successfully!');
+        setFormData({ name: '', email: '', phone: '', service: '', address: '' }); // Clear form
+      } else {
+        alert('Failed to send application.');
+      }
+    } catch (error) {
+      console.error('Error sending application:', error);
+      alert('Error sending application.');
+    } finally {
       setIsSubmitting(false);
-    }, 500);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -103,6 +119,7 @@ export default function ApplicationForm() {
             name="address"
             rows={4}
             value={formData.address}
+            required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             onChange={handleChange}
           ></textarea>
