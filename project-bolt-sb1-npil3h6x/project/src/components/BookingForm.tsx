@@ -8,53 +8,22 @@ export default function ApplicationForm() {
     service: '',
     address: ''
   });
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitResult, setSubmitResult] = useState<{success: boolean, message: string} | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitResult(null);
-    
-    try {
-      // Replace with your actual API endpoint
-      const response = await fetch('https://your-api-endpoint.com/applications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      
-      if (response.ok) {
-        setSubmitResult({
-          success: true,
-          message: 'Application submitted successfully!'
-        });
-        // Reset form after successful submission
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          service: '',
-          address: ''
-        });
-      } else {
-        const errorData = await response.json();
-        setSubmitResult({
-          success: false,
-          message: errorData.message || 'Failed to submit application. Please try again.'
-        });
-      }
-    } catch (error) {
-      setSubmitResult({
-        success: false,
-        message: 'Network error. Please check your connection and try again.'
-      });
-    } finally {
+
+    const subject = `Job Application for ${formData.service}`;
+    const body = `Name: ${formData.name}%0AEmail: ${formData.email}%0APhone: ${formData.phone}%0AService: ${formData.service}%0AAddress: ${formData.address}`;
+    const mailtoLink = `mailto:bhemsociety@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+
+    // Delay execution slightly to ensure UI updates properly
+    setTimeout(() => {
+      window.location.href = mailtoLink;
       setIsSubmitting(false);
-    }
+    }, 500);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -80,7 +49,7 @@ export default function ApplicationForm() {
             onChange={handleChange}
           />
         </div>
-        
+
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
           <input
@@ -93,7 +62,7 @@ export default function ApplicationForm() {
             onChange={handleChange}
           />
         </div>
-        
+
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
           <input
@@ -106,7 +75,7 @@ export default function ApplicationForm() {
             onChange={handleChange}
           />
         </div>
-        
+
         <div>
           <label htmlFor="service" className="block text-sm font-medium text-gray-700">Position</label>
           <select
@@ -126,7 +95,7 @@ export default function ApplicationForm() {
             <option value="Facility Management">Facility Management</option>
           </select>
         </div>
-        
+
         <div>
           <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
           <textarea
@@ -138,19 +107,13 @@ export default function ApplicationForm() {
             onChange={handleChange}
           ></textarea>
         </div>
-        
-        {submitResult && (
-          <div className={`p-3 rounded-md ${submitResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-            {submitResult.message}
-          </div>
-        )}
-        
+
         <button
           type="submit"
           disabled={isSubmitting}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:bg-blue-300"
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Application'}
+          {isSubmitting ? 'Submitting...' : 'Send Application'}
         </button>
       </form>
     </section>
